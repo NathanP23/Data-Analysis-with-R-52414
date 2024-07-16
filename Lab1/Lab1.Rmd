@@ -1,29 +1,962 @@
 ---
-title: "Lab1"
-output: html_document
-date: "2024-06-05"
+title: "52414 - lab 1 instructions"
+author: '52414'
+date: "30/5/2024"
+output:
+  html_document: default
+  pdf_document: default
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# *Lab 1: Basic Data Wrangling and Plotting, Distributions*
+
+<br/><br/>
+
+### Submission Instructions
+
+This lab will be submitted in pairs (if you don't have a pair, please contact us).\
+**Important: your team's name must be `FamilyName1_Name1_and_FamilyName2_Name2`**.
+
+You should upload two files to moodle: this Rmd file (with your answers filled-in), together with the html file that is outputted automatically by knitr when you knit the Rmd. Anything else will be disregarded. In addition, please adhere to the following file format:\
+`Lab_1_FamilyName1_Name1_and_FamilyName2_Name2.Rmd/html`
+
+<br/><br/> The only allowed libraries are the following (**please do not add additional libraries without permission from the course staff**):
+
+```{r message=FALSE, warning=FALSE, echo = TRUE, results = 'hide',  warning=FALSE, message=FALSE,  eval=FALSE}
+library(tidyverse) # This includes dplyr, stringr, ggplot2, .. 
+library(data.table)
+library(rworldmap) # world map
+library(ggthemes)
+library(reshape2) # melt: change data-frame format long/wide
+library(e1071) # skewness and kurtosis
 ```
 
-## R Markdown
+<br/><br/>
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+## Analysis of the World Covid-19 Dataset
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+The `world-of-data` website hosts world-wide epidemiological data on the Corona Virus (COVID-19). The dataset is compiled by the Johns Hopkins University Center for Systems Science and Engineering (JHU CCSE) from various sources, It contains data since January 2020. For the data and more information about it, please visit [here](https://github.com/owid/covid-19-data/tree/master/public/data). <br>
 
-```{r cars}
-summary(cars)
+You can see several nice visualizations of the data [here](https://ourworldindata.org/covid-vaccinations)
+
+We will focus on analyzing the Covid-19 cases, deaths and vaccinations data over time for different countries and continents.
+
+### General Guidance
+
+-   Your solution should be submitted as a full `Rmd` report integrating text, code, figures and tables. For each question, describe first in the text of your solution what you're trying to do, then include the relevant code, then the results (e.g. figures/tables) and a textual description of them.
+
+-   In most questions the extraction/manipulation of relevant parts of the data-frame can be performed using commands from the `tidyverse` and `dplyr` R packages, such as `head`, `arrange`, `aggregate`, `group-by`, `filter`, `select`, `summaries`, `mutate`, `order` etc.
+
+-   When displaying tables, show the relevant columns and rows with meaningful names, and describe the results.
+
+-   When displaying figures, make sure that the figure is clear to the reader, axis ranges are appropriate, labels for the axis, title and different curves/bars are displayed clearly, font sizes are large enough, a legend is shown when needed etc. Explain and describe in text what is shown in the figure.
+
+-   In some questions it is not specified which commands you should use (e.g. "take column X and compute the median .." ) and you have to look at the data yourself in order to figure out what the exact commands to perform. For example, you need to decide how to extract data by continent or by income level.
+
+-   Sometimes data may be missing (e.g. `NA`). Make sure that all your calculations (e.g. taking the maximum, average, correlation etc.) take this into account. Specifically, the calculations should ignore the missing values to allow us to compute the desired results for the rest of the values (for example, using the option `na.rm = TRUE`).
+
+-   **Grading:** There are $15$ sub-questions overall. Each subquestion is worth $6\frac{2}{3}$ points for the lab grade. The questions vary in length and difficulty level. It is recommended to start with the simpler and shorter questions.
+
+### Questions:
+
+1.  **Loading data and basic processing:**
+
+    a.  Load the complete up-to-date covid19 dataset in the file `owid-covid-data.csv` from [world-of-data](https://github.com/owid/covid-19-data/tree/master/public/data) into a data-frame in `R`. Change the class of the `date` variable to `Date` and check that the class is correct. Display the top five rows of the data-frame.
+
+    b.  List in a table the top five *dates* in terms of number of `new_cases` for `High income` countries. Show only the date and the number of new cases at this date. <br> Repeat the same with three additional separate tables for top five dates for the three other income classes (e.g. `Low income`).
+
+2.  **Comparing different income levels:**
+
+    a.  Plot the value of the column `new_cases_per_million` as a function of the date for the four different income classes, shown on the same graph with different four colors or symbols. Use meaningful axis and plot labels, and add an informative legend. `NA` or other no-number values should not be displayed. <br> Next, make a similar plot for the *log* of the *smoothed* number of new cases per million, `new_cases_smoothed_per_million`. Which plot is easier to interpret? explain.
+
+    b.  Similarly, make two additional separate plots for the *log* of the *smoothed* number of `new deaths per million` and `new vaccinations per million` as a function of date for the four income classes. Describe the plotted results.
+
+3.  **Storing and analyzing current (cumulative) values:**
+
+    a.  Create a new data-frame called `current` with *one row per location* (countries and other locations such as continents etc.), that for each `location` will store as columns the country name (`location`) and `continent`, and also the **current** values (latest date reported for each value) for: `total_cases_per_million`, `total_deaths_per_million`, `total_vaccinations_per_hundred`, `people_fully_vaccinated_per_hundred`, `total_boosters_per_hundred` and `excess_mortality_cumulative_per_million`. <br> Sort this new data-frame alphabetically by `location` and show the first five rows.
+
+        **Note:** Some values are not reported daily for some locations. In this case, there may be 'NA' values in the complete covid19 data-frame. In this case, the `current` data-frame should store the last reported (numeric) value for each location, even if there are 'NA' values for the same location at later dates. If for a certain `location` and column there are no reported values at all (all 'NA'), then the `current` data-frame should also have an `NA` for this `location` and column.
+
+    b.  Divide the countries into groups by `median age` with a resolution of `10` years: below `20`, between `20` and `30` etc. For each such group, show the values for the current `total_cases_per_million` in the different countries in the group. You may use a histogram with 10 bins or a smoothed desnity for each group, and display the groups in the same figure or separate figures (using either base-R commands or `ggplot`). What is your conclusion?
+
+    c.  Next, make a scatter plot showing the current `total_deaths_per_million` (y-axis) vs. the current `total_cases_per_million`. Compute a linear regression line of the total number of deaths per million as a function of the total number of cases per million and add the fitted regression line to the plot. What is the slope and what does it represent?
+
+4.  **Vaccinations in different continents:** For each of the six different continents (`Africa`, `Asia`, `Europe`, `North America`, `Oceania`, `South America`), make a boxplot of the distribution of the (current) total number of vaccinations per hundred in all the countries in the continent. Show one figure with the six boxplots next to each other. (Use the new `current` data-frame created in qu. 3). <bt> Find all the outlier countries in each continent and write their name and value.
+
+5.  **Cumulative plots:**
+
+    a.  Plot the total number of cases as a function of the date, for each of the six different continents (`Africa`, `Asia`, `Europe`, `North America`, `Oceania`, `South America`) and for the whole world. Show one figure with graphs of different colors/symbols.
+
+    b.  Find the first date at which at least $95\%$ of `total deaths` have occurred in the entire world, compared to the current number. Filter the data-frame to include only data from the start date, until the end of the corresponding month of this date. (For example, if $95\%$ of deaths occured until February 6th, 2024, include the entire February 2024 month, but not March 2024). Repeat the cumulative plot from (a.) for the filtered data-frame, but this time normalize the y-axis to be between $0$ and $1$ for each continent, i.e. display the empirical CDF of the number of deaths for each continent. Find and report the median date in terms of total deaths for each continent, i.e. the first date at which at least $50\%$ of deaths for the filtered data-frame have occurred.
+
+    c.  Make a similar plot to (a.) for all continents and the world, but for the `total_vaccinations_per_hundred` variable in the filtered data-frame (not normalized). Describe the results.
+
+    d.  *Death risk after Covid-19 infection:* Add to the main covid data-frame a new column called `death_rate`, defined for each `location` and `date` as the number of `total_deaths` divided by the number of `total_cases`. This column represents the risk of a person diagnosed with covid to die from the disease. Plot for each of the six continents and the entire world the `death_rate` as a function of time (one plot with separate colors/symbols). Since there is a delay from time of diagnosis to time of death, the initial values of this column are less reliable as a measure of death risk, hence start your plot on *January 1st, 2021* (the end date should be the end of the month you've found in qu. 5.b.). Do we see a decrease in the risk over time? can you suggest explanations for the observed trends? Do the plots suggest that the change in death risk is correlated to the change in the number of vaccinations?
+
+6.  **Displaying data on the world map:** Use the `rworldmap` package to display the world map and color each country based on the `total_deaths_per_million`. Repeat for `total_vaccinations_per_hundred`, and `excess_mortality_cumulative_per_million`. Describe the resulting maps in a couple of sentences.
+
+    List the top three countries for each of these variables in a table.
+
+    **Guidance:** Use the `joinCountryData2Map` and `mapCountryData` commands to make the plots. Keep countries with missing data in white.
+
+7.  **Excess mortality:** It is claimed that in some countries the death-rate from Covid-19 is under-reported. We can investigate this using excess mortality data - this data lists the number of deaths from all causes at each country, compared to the usual number of deaths at the same country and date calculated from previous years mortality data. The gap between the two, representing and increase (or decrease) in deaths beyond the usual rate, is called 'excess mortality', and might be partially or fully explained by deaths from Covid-19.
+
+    a.  Use the `current` data-frame to make a scatter plot of the current date `total_deaths_per_million` vs. the `excess_mortality_cumulative_per_million` for all countries for which excess mortality data is available. Add the lines $y=x, y=x+3000$ and $y=x-3000$ to the plot. Mark on the graph in a different color all the countries for which the difference between the the excess mortality and the covid death rate (per million) is at least 3000 and add their names to the plot (you can use the `text` function).
+
+    b.  Choose three countries where the excess mortality was at least 3000 per million *above* the reported covid death rate, and that have at least $50$ available data points for each for `excess_mortality_cumulative_per_million`. Use the main covid data-frame to plot as a function of time both the `total_deaths_per_million` and the `excess_mortality_cumulative_per_million` for each country (one plot - use different colors/symbols for the different countries and covid-deaths/excess-mortality). Identify from the plot for each country the time periods where most deaths not explained by Covid-19 occurred.
+
+**Solution:**
+
+1.  **Solution Explanation**:
+
+    a. **Loading the Data**:
+
+    The first step involves setting the working directory to the location where the data file is stored using `setwd("~/Documents/HUJI/Data Analysis with R 52414/Lab1")`.
+
+    Next, the required library `tidyverse` is loaded, which is a collection of R packages designed for data science.
+
+    The `read_csv` function is used to read the "owid-covid-data.csv" file into a dataframe called `covid_data`.
+
+    The `date` column in the dataframe is then converted to the Date type using `as.Date`.
+
+    b. **Listing Five Top Dates by New Cases**:
+
+    The data is filtered by income levels (High income, Upper middle income, Lower middle income, and Low income) using the `filter` function.
+
+    For each income level, the data is sorted in descending order based on the number of new cases using `arrange(desc(new_cases))`.
+
+    The top five dates with the highest number of new cases are selected and displayed using `select(date, new_cases)` and `head(5)`.
+
+```{r message=FALSE, warning=FALSE}
+# you can modify the settings of the r block. For example:  echo=FALSE, eval = FALSE, cache=TRUE ...
+# Solution code in R: 
+
+# a. Loading the data
+setwd("~/Documents/HUJI/Data Analysis with R 52414/Lab1")
+library(tidyverse)
+covid_data <- read_csv("owid-covid-data.csv")
+
+# Modifying date
+covid_data$date <- as.Date(covid_data$date)
+head(covid_data, 5)
+
+# b. Listing five top dates
+covid_data %>% filter(location == "High income") %>% arrange(desc(new_cases)) %>% select(date, new_cases) %>% head(5)
+covid_data %>% filter(location == "Upper middle income") %>% arrange(desc(new_cases)) %>% select(date, new_cases) %>% head(5)
+covid_data %>% filter(location == "Lower middle income") %>% arrange(desc(new_cases)) %>% select(date, new_cases) %>% head(5)
+covid_data %>% filter(location == "Low income") %>% arrange(desc(new_cases)) %>% select(date, new_cases) %>% head(5)
+
 ```
 
-## Including Plots
+**Description of Analysis and Results**:
 
-You can also embed plots, for example:
+-   The analysis involves reading the COVID-19 data, converting the date column to an appropriate format, and then filtering the data based on income levels.
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+-   For each income level, the top five dates with the highest number of new COVID-19 cases are identified.
+
+-   This helps in understanding the dates with the most significant COVID-19 case surges in different income groups, which can be crucial for analyzing the spread and impact of the virus across various economic strata.
+
+2.  **Solution Explanation**:
+
+    a. **Filtering and Selecting Data**:
+
+    -   The `covid_data` dataframe is filtered to include only the rows where the `location` is one of the income levels: "High income", "Upper middle income", "Lower middle income", and "Low income".
+
+    -   The `select` function is used to choose specific columns: `date`, `location`, `new_cases_per_million`, `new_cases_smoothed_per_million`, `new_deaths_smoothed_per_million`, and `new_vaccinations_smoothed_per_million`.
+
+    b. **Reordering Location Factor Levels**:
+
+    -   The `location` column is converted to a factor and its levels are reordered to: "High income", "Upper middle income", "Lower middle income", and "Low income". This ensures that the income levels are displayed in a meaningful order in the plots.
+
+    c. **Creating Plots**:
+
+    -   The `Question2_create_plot` function is defined to create line plots using `ggplot2`. It takes three arguments: `y_arg`(the y-axis variable), `plot_title` (the title of the plot), and `y_title` (the label for the y-axis).
+
+    -   Inside the function, a `ggplot` object is created with `date` on the x-axis and `y_arg` on the y-axis, colored by `location`.
+
+    -   The `geom_line` function adds the lines to the plot.
+
+    -   The `scale_color_manual` function is used to specify custom colors for each income level.
+
+    -   The `labs` function is used to set the plot title, x-axis label, y-axis label, and the legend title.
+
+    -   The `theme_minimal` function is used to apply a minimal theme to the plot for a clean appearance.
+
+    d. **Generating Specific Plots**:
+
+    -   The `Question2_create_plot` function is called four times to create different plots:
+
+        1.  **New Cases per Million over Time by Income Level**:
+
+            -   `y_arg`: `filtered_data$new_cases_per_million`
+
+            -   `plot_title`: "New Cases per Million over Time by Income Level"
+
+            -   `y_title`: "New Cases per Million"
+
+        2.  **Log of Smoothed New Cases per Million over Time by Income Level**:
+
+            -   `y_arg`: `log(filtered_data$new_cases_smoothed_per_million)`
+
+            -   `plot_title`: "Log of Smoothed New Cases per Million over Time by Income Level"
+
+            -   `y_title`: "Log of Smoothed New Cases per Million"
+
+        3.  **Log of Smoothed New Deaths per Million over Time by Income Level**:
+
+            -   `y_arg`: `log(filtered_data$new_deaths_smoothed_per_million)`
+
+            -   `plot_title`: "Log of Smoothed New Deaths per Million over Time by Income Level"
+
+            -   `y_title`: "Log of Smoothed New Deaths per Million"
+
+        4.  **Log of Smoothed New Vaccinations per Million over Time by Income Level**:
+
+            -   `y_arg`: `log(filtered_data$new_vaccinations_smoothed_per_million)`
+
+            -   `plot_title`: "Log of Smoothed New Vaccinations per Million over Time by Income Level"
+
+            -   `y_title`: "Log of Smoothed New Vaccinations per Million"
+
+```{r message=FALSE, warning=FALSE}
+
+# question 2
+filtered_data <- covid_data %>%
+  filter(
+    location %in% c("High income", "Upper middle income", "Lower middle income", "Low income"))  %>%
+  select(date, location, new_cases_per_million, new_cases_smoothed_per_million, new_deaths_smoothed_per_million, new_vaccinations_smoothed_per_million)
+
+# Reorder location factor levels
+filtered_data$location <- factor(filtered_data$location, 
+                                 levels = c("High income",
+                                            "Upper middle income", 
+                                            "Lower middle income",
+                                            "Low income"))
+
+Question2_create_plot <- function(y_arg, plot_title, y_title) {
+  ggplot(filtered_data, aes(x = date, y = y_arg, color = location)) +
+    geom_line(size = 0.7) +
+    scale_color_manual(values = c("High income" = "red", 
+                                  "Upper middle income" = "yellow", 
+                                  "Lower middle income" = "green", 
+                                  "Low income" = "blue")) +
+    labs(title = plot_title,
+         x = "Date",
+         y = y_title,
+         color = "Income Level") +
+    theme_minimal()
+}
+
+Question2_create_plot(filtered_data$new_cases_per_million, "New Cases per Million over Time by Income Level", "New Cases per Million")
+Question2_create_plot(log(filtered_data$new_cases_smoothed_per_million), "Log of Smoothed New Cases per Million over Time by Income Level", "Log of Smoothed New Cases per Million")
+Question2_create_plot(log(filtered_data$new_deaths_smoothed_per_million), "Log of Smoothed New Deaths per Million over Time by Income Level", "Log of Smoothed New Deaths per Million")
+Question2_create_plot(log(filtered_data$new_vaccinations_smoothed_per_million), "Log of Smoothed New Vaccinations per Million over Time by Income Level", "Log of Smoothed New Vaccinations per Million")
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+**Description of Analysis and Results**:
+
+-   The data is filtered and organized to focus on different income levels and specific metrics related to COVID-19.
+
+-   Custom line plots are created to visualize the trends in new cases, smoothed new cases, smoothed new deaths, and smoothed new vaccinations per million people over time, differentiated by income level.
+
+-   These visualizations provide insights into how different income groups have been affected by the pandemic and the progress of vaccination campaigns over time.
+
+3.  **Solution Explanation**:
+
+    a. **Sorting and Grouping Data**:
+
+    -   The `covid_data` dataframe is first sorted by `location` and `date` in descending order.
+
+    -   A custom function `get_latest_value` is defined to retrieve the latest non-NA and non-negative value for each column.
+
+    -   The data is then grouped by `location` and summarized to get the latest values for several key metrics: `total_cases_per_million`, `total_deaths_per_million`, `total_vaccinations_per_hundred`, `people_fully_vaccinated_per_hundred`, `total_boosters_per_hundred`, `excess_mortality_cumulative_per_million`, and `median_age`.
+
+    -   The resulting dataframe `current` contains the most recent data for each location.
+
+    b. **Creating a Histogram Plot**:
+
+    -   A color palette is defined for different age groups.
+
+    -   The `current` dataframe is updated to include an `age_group` column, categorizing `median_age` into different groups.
+
+    -   A histogram plot is created using `ggplot2` to show the distribution of `total_cases_per_million` across different median age groups.
+
+    -   The plot is faceted by `age_group` and custom colors are applied using the defined color palette.
+
+    c. **Creating a Scatter Plot and Linear Regression**:
+
+    -   The `current` dataframe is further updated to include a `color_group` column, assigning colors based on the `total_cases_per_million` values.
+
+    -   A scatter plot is created using `ggplot2`, with `total_cases_per_million` on the x-axis and `total_deaths_per_million` on the y-axis. Points are colored based on the `color_group`, and a regression line is added.
+
+    -   A linear regression model is fitted to the data, with `total_deaths_per_million` as the response variable and `total_cases_per_million` as the predictor.
+
+    -   The slope of the regression line and the summary of the linear model are extracted and printed.
+
+```{r message=FALSE, warning=FALSE}
+
+# question 3
+
+# Ensure required libraries are loaded
+library(ggplot2)
+library(dplyr)
+
+# a.
+# Sort the dataframe by location and date
+current <- covid_data %>%
+  arrange(location, desc(date))
+
+# Function to get the latest non-NA and non-negative value for each column
+get_latest_value <- function(x) {
+  x <- x[!is.na(x) & x >= 0]
+  if(length(x) > 0) {
+    return(x[1])
+  } else {
+    return(NA)
+  }
+}
+
+# Group by location and get the latest values
+current <- current %>%
+  group_by(location) %>%
+  summarise(
+    continent = first(continent),
+    date = first(date),
+    total_cases_per_million = get_latest_value(total_cases_per_million),
+    total_deaths_per_million = get_latest_value(total_deaths_per_million),
+    total_vaccinations_per_hundred = get_latest_value(total_vaccinations_per_hundred),
+    people_fully_vaccinated_per_hundred = get_latest_value(people_fully_vaccinated_per_hundred),
+    total_boosters_per_hundred = get_latest_value(total_boosters_per_hundred),
+    excess_mortality_cumulative_per_million = get_latest_value(excess_mortality_cumulative_per_million),
+    median_age = get_latest_value(median_age)
+    
+  ) %>%
+  ungroup()
+
+# b.
+# Define a color palette for the age groups
+color_palette <- c("<20" = "red", "20-30" = "orange", "30-40" = "yellow", 
+                   "40-50" = "green", "50-60" = "blue", "60-70" = "purple", 
+                   "70-80" = "pink", "80-90" = "brown", "90-100" = "grey")
+# Assign age groups with custom colors
+current <- current %>%
+  mutate(age_group = cut(median_age, breaks = c(0, 20, 30, 40, 50, 60, 70, 80, 90, 100), 
+                         labels = names(color_palette), include.lowest = TRUE)) %>%
+  filter(!is.na(age_group))
+
+# Create the histogram plot
+histogram_plot <- ggplot(current, aes(x = total_cases_per_million, fill = age_group)) +
+  geom_histogram(bins = 10, position = "identity", alpha = 0.5) +  
+  facet_wrap(~ age_group, scales = "free") + 
+  scale_fill_manual(values = color_palette) +  # Use the color palette
+  labs(
+    title = "Distribution of Total Cases per Million by Median Age Group",
+    x = "Total Cases per Million",
+    y = "Frequency"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "top")  # Position legend on top
+
+# Print the histogram plot
+print(histogram_plot)
+
+# c.
+# Assign colors based on the total_cases_per_million values
+current <- current %>%
+  mutate(color_group = cut(total_cases_per_million, breaks = length(color_palette), labels = names(color_palette)))
+
+# Create scatter plot with regression line and custom colors
+scatter_plot <- ggplot(current, aes(x = total_cases_per_million, y = total_deaths_per_million)) +
+  geom_point(aes(color = color_group), alpha = 0.6) +  # Scatter plot points with color spectrum
+  geom_smooth(method = "lm", se = TRUE, color = "black") +  # Regression line in black
+  scale_color_manual(values = color_palette) +  # Use the color palette
+  labs(
+    title = "Total Deaths per Million vs. Total Cases per Million",
+    x = "Total Cases per Million",
+    y = "Total Deaths per Million"
+  ) +
+  theme_minimal()
+
+# Print the scatter plot
+print(scatter_plot)
+
+# Fit the linear regression model
+linear_model <- lm(total_deaths_per_million ~ total_cases_per_million, data = current)
+
+# Extract the slope of the regression line
+slope <- coef(linear_model)[2]
+slope_summary <- summary(linear_model)
+
+# Print the slope and summary of the linear model
+print(slope)
+print(slope_summary)
+
+```
+
+**Description of Analysis and Results**:
+
+-   **Part a**: The data is sorted and grouped to obtain the latest available values for various metrics across different locations. This provides a snapshot of the current state of the pandemic in different regions.
+
+-   **Part b**: A histogram plot is created to visualize the distribution of total cases per million people, categorized by median age groups. This helps in understanding how different age groups are affected in terms of case numbers.
+
+-   **Part c**: A scatter plot with a regression line is created to examine the relationship between total cases per million and total deaths per million. The colors of the points indicate different levels of total cases per million. The regression line provides insights into the trend and strength of the relationship.
+
+-   The slope and summary of the linear regression model are calculated and displayed, providing statistical details about the relationship between the two variables.
+
+4.  **Solution Explanation**:
+
+    a. **Loading Required Libraries**:
+
+    -   Ensure the `ggplot2` and `dplyr` libraries are loaded for data manipulation and visualization.
+
+    b. **Creating a Custom Color Palette**:
+
+    -   Define a custom color palette for different continents to use in the boxplot. The colors are specified for Africa, Asia, Europe, North America, Oceania, and South America.
+
+    c. **Creating a Boxplot**:
+
+    -   A boxplot is created using `ggplot2` to visualize the distribution of `total_vaccinations_per_hundred` for each continent.
+
+    -   The `geom_boxplot` function is used to create the boxplot, with outliers colored brown and given a specific shape.
+
+    -   The `scale_fill_manual` function applies the custom color palette to the continents.
+
+    -   The `labs` function is used to set the plot title and axis labels.
+
+    -   The `theme_minimal` function is applied for a clean appearance.
+
+    d. **Identifying Outliers**:
+
+    -   A custom function `find_outliers` is defined to identify outliers based on the interquartile range (IQR) method.
+
+    -   The `quantile` function calculates the first quartile (Q1) and third quartile (Q3) of the data, and the IQR is computed as the difference between Q3 and Q1.
+
+    -   The lower and upper bounds for outliers are determined using 1.5 times the IQR below Q1 and above Q3, respectively.
+
+    -   The `summarise` function is used to identify outlier countries for each continent by checking if the `total_vaccinations_per_hundred` values fall outside the calculated bounds.
+
+```{r message=FALSE, warning=FALSE}
+
+# Question 4.
+# Ensure required libraries are loaded
+library(ggplot2)
+library(dplyr)
+
+# Define a custom color palette
+continent_colors <- c("Africa" = "red", "Asia" = "blue", "Europe" = "green", 
+                      "North America" = "yellow", "Oceania" = "pink", 
+                      "South America" = "orange")
+
+# Boxplot of total vaccinations per hundred for each continent with custom colors
+boxplot_vaccinations <- ggplot(current, aes(x = continent, y = total_vaccinations_per_hundred, fill = continent)) +
+  geom_boxplot(outlier.colour = "brown", outlier.shape = 1) +  # Boxplot with brown outliers
+  scale_fill_manual(values = continent_colors) +  # Apply custom colors
+  theme_minimal() +
+  labs(
+    title = "Total Vaccinations per Hundred by Continent",
+    x = "Continent",
+    y = "Total Vaccinations per Hundred"
+  )
+
+# Print the boxplot
+print(boxplot_vaccinations)
+
+# Function to identify outliers
+find_outliers <- function(x) {
+  q1 <- quantile(x, 0.25, na.rm = TRUE)
+  q3 <- quantile(x, 0.75, na.rm = TRUE)
+  iqr <- q3 - q1
+  lower_bound <- q1 - 1.5 * iqr
+  upper_bound <- q3 + 1.5 * iqr
+  x[x < lower_bound | x > upper_bound]
+}
+
+# Identify outlier countries for each continent
+outliers <- current %>%
+  group_by(continent) %>%
+  summarise(outliers = list(location[total_vaccinations_per_hundred %in% find_outliers(total_vaccinations_per_hundred)]))
+
+# Print the outliers
+print(outliers)
+
+```
+
+**Description of Analysis and Results**:
+
+-   **Part a**: The required libraries `ggplot2` and `dplyr` are loaded.
+
+-   **Part b**: A custom color palette is defined to assign specific colors to each continent.
+
+-   **Part c**: A boxplot is created to visualize the distribution of total vaccinations per hundred people for each continent. The boxplot uses the custom color palette and highlights outliers in brown.
+
+-   **Part d**: Outliers in the `total_vaccinations_per_hundred` data are identified for each continent using the IQR method. The list of outlier countries is then summarized and printed.
+
+5.  **Solution Explanation:**
+
+    a. **Cumulative Total Cases Over Time by Continent and World**:
+
+    -   The data is grouped by `date` and `continent` to calculate cumulative total cases.
+
+    -   The `continent_data` dataframe is created to store this information for each continent.
+
+    -   The `global_data` dataframe is created to store the aggregated data for the entire world.
+
+    -   Both dataframes are combined using `bind_rows` and plotted using `ggplot2`. The plot shows cumulative total cases over time, with lines colored by continent.
+
+    b. **Normalized Cumulative Total Deaths by Date for Each Continent**:
+
+    -   The data is filtered to remove rows with NA values in `total_deaths`.
+
+    -   The `continent_data` dataframe is created to store cumulative total deaths for each continent, and the `global_data`dataframe is created to store the aggregated data for the entire world.
+
+    -   The combined data is arranged by date, and cumulative deaths are calculated for each continent.
+
+    -   The total deaths at the current date are determined, and the date at which at least 95% of total deaths have occurred is identified.
+
+    -   The data is filtered to include only the relevant date range, and the y-axis is normalized to be between 0 and 1 for each continent.
+
+    -   A normalized cumulative deaths plot is created using `ggplot2`.
+
+    c. **Cumulative Total Vaccinations per Hundred by Continent**:
+
+    -   The data is grouped by `date` and `continent` to calculate cumulative total vaccinations per hundred.
+
+    -   The `continent_vaccinations` dataframe is created to store this information for each continent, and the `world_vaccinations` dataframe is created to store the aggregated data for the entire world.
+
+    -   Both dataframes are combined using `bind_rows` and plotted using `ggplot2`. The plot shows cumulative total vaccinations per hundred over time, with lines colored by continent.
+
+    d. **Death Rate Over Time by Continent and World**:
+
+    -   A new column `death_rate` is added to the `covid_data` dataframe, calculated as `total_deaths / total_cases`.
+
+    -   The data is filtered to include rows from January 1, 2021, onwards and to remove rows with NA values in `death_rate`.
+
+    -   The `continent_death_rate` dataframe is created to store average death rates for each continent, and the `world_death_rate` dataframe is created to store the aggregated data for the entire world.
+
+    -   Both dataframes are combined using `bind_rows` and plotted using `ggplot2`. The plot shows death rates over time, with lines colored by continent.
+
+```{r message=FALSE, warning=FALSE}
+
+# question 5.
+# a.
+library(ggplot2)
+library(dplyr)
+
+# Group data by date and continent to calculate cumulative total cases
+continent_data <- covid_data %>%
+  filter(!is.na(continent) & continent != "") %>%
+  group_by(date, continent) %>%
+  summarise(total_cases = sum(total_cases, na.rm = TRUE)) %>%
+  ungroup()
+
+# Aggregate data globally
+global_data <- covid_data %>%
+  filter(!is.na(continent) & continent != "") %>%
+  group_by(date) %>%
+  summarise(total_cases = sum(total_cases, na.rm = TRUE)) %>%
+  mutate(continent = "World") %>%
+  ungroup()
+
+# Define a custom color palette
+continent_colors <- c("Africa" = "red", "Asia" = "blue", "Europe" = "green", 
+                      "North America" = "yellow", "Oceania" = "pink", 
+                      "South America" = "orange", "World" = "black")
+
+# Create the cumulative plot
+cumulative_plot <- ggplot(bind_rows(continent_data, global_data), aes(x = date, y = total_cases, color = continent, group = continent)) +
+  geom_line(size = 0.7) +
+  labs(
+    title = "Cumulative Total Cases Over Time by Continent and World",
+    x = "Date",
+    y = "Total Cases",
+    color = "Continent"
+  ) +
+  scale_y_continuous(labels = scales::comma) +
+  scale_color_manual(values = continent_colors) +
+  theme_minimal()
+
+# Print the cumulative plot
+print(cumulative_plot)
+
+# b.
+# Filter out rows with NA values in `total_deaths`
+df <- covid_data %>%
+  filter(!is.na(total_deaths))
+
+# Group data by date and continent to calculate cumulative total deaths
+continent_data <- df %>%
+  filter(!is.na(continent) & continent != "") %>%
+  group_by(date, continent) %>%
+  summarise(total_deaths = sum(total_deaths, na.rm = TRUE)) %>%
+  ungroup()
+
+# Aggregate data globally
+global_data <- df %>%
+  filter(!is.na(continent) & continent != "") %>%
+  group_by(date) %>%
+  summarise(total_deaths = sum(total_deaths, na.rm = TRUE)) %>%
+  mutate(continent = "World") %>%
+  ungroup()
+
+# Combine continent and global data
+combined_data <- bind_rows(continent_data, global_data)
+
+# Calculate cumulative total deaths for the combined data
+combined_data <- combined_data %>%
+  arrange(date) %>%
+  group_by(continent) %>%
+  mutate(cumulative_deaths = cumsum(total_deaths)) %>%
+  ungroup()
+
+# Find the total deaths at the current date
+total_deaths_current <- max(combined_data$cumulative_deaths[combined_data$continent == "World"], na.rm = TRUE)
+
+# Find the date at which at least 95% of total deaths have occurred
+threshold_deaths <- 0.95 * total_deaths_current
+date_95_percent <- combined_data %>%
+  filter(continent == "World" & cumulative_deaths >= threshold_deaths) %>%
+  summarise(date = min(date)) %>%
+  pull(date)
+
+# Filter the data to include only data from the start date until the end of the corresponding month
+start_date <- as.Date("2020-01-01")
+end_date <- as.Date(paste(format(date_95_percent, "%Y-%m"), "-28", sep=""))  # Adjust the end date to the end of the month
+
+filtered_df <- combined_data %>%
+  filter(date >= start_date & date <= end_date)
+
+# Normalize the y-axis to be between 0 and 1 for each continent
+normalized_df <- filtered_df %>%
+  group_by(continent) %>%
+  mutate(normalized_deaths = cumulative_deaths / max(cumulative_deaths, na.rm = TRUE)) %>%
+  ungroup()
+
+# Define a custom color palette
+continent_colors <- c("Africa" = "red", "Asia" = "blue", "Europe" = "green", 
+                      "North America" = "yellow", "Oceania" = "pink", 
+                      "South America" = "orange", "World" = "black")
+
+# Plot the normalized cumulative total deaths for each continent
+normalized_plot <- ggplot(normalized_df, aes(x = date, y = normalized_deaths, color = continent, group = continent)) +
+  geom_line(size = 0.7) +
+  scale_color_manual(values = continent_colors) +
+  labs(
+    title = "Normalized Cumulative Total Deaths by Date for Each Continent",
+    x = "Date",
+    y = "Normalized Total Deaths",
+    color = "Continent"
+  ) +
+  theme_minimal()
+
+# Print the normalized plot
+print(normalized_plot)
+
+# Find and report the median date in terms of total deaths for each continent
+median_dates <- normalized_df %>%
+  group_by(continent) %>%
+  summarise(median_date = date[which.max(normalized_deaths >= 0.5)])
+
+# Print the median dates
+print(median_dates)
+
+
+#c.
+# Group data by date and continent to calculate cumulative total vaccinations per hundred
+continent_vaccinations <- covid_data %>%
+  filter(continent != "") %>%
+  group_by(continent, date) %>%
+  summarise(total_vaccinations_per_hundred = sum(total_vaccinations_per_hundred, na.rm = TRUE)) %>%
+  arrange(continent, date) %>%
+  mutate(cumulative_vaccinations = cumsum(total_vaccinations_per_hundred)) %>%
+  ungroup()
+
+# Calculate cumulative total vaccinations per hundred for the world
+world_vaccinations <- covid_data %>%
+  filter() %>%
+  group_by(date) %>%
+  summarise(total_vaccinations_per_hundred = sum(total_vaccinations_per_hundred, na.rm = TRUE)) %>%
+  arrange(date) %>%
+  mutate(cumulative_vaccinations = cumsum(total_vaccinations_per_hundred)) %>%
+  ungroup() %>%
+  mutate(continent = "World")
+
+# Combine continent and world data
+combined_vaccinations <- bind_rows(continent_vaccinations, world_vaccinations)
+
+# Define a custom color palette
+continent_colors <- c("Africa" = "red", "Asia" = "blue", "Europe" = "green", 
+                      "North America" = "yellow", "Oceania" = "pink", 
+                      "South America" = "orange", "World" = "black")
+
+# Plot the cumulative total vaccinations per hundred over time for each continent and the world
+vaccinations_plot <- ggplot(combined_vaccinations, aes(x = date, y = cumulative_vaccinations, color = continent)) +
+  geom_line(size = 0.7) +
+  labs(
+    title = "Cumulative Total Vaccinations per Hundred by Continent",
+    x = "Date",
+    y = "Cumulative Total Vaccinations per Hundred",
+    color = "Continent"
+  ) +
+  scale_color_manual(values = continent_colors) +
+  theme_minimal()
+
+# Print the plot
+print(vaccinations_plot)
+
+# d.
+# Add death_rate column
+covid_data <- covid_data %>%
+  mutate(death_rate = total_deaths / total_cases)
+
+# Filter the data for plotting death_rate
+filtered_data <- covid_data %>%
+  filter(date >= as.Date("2021-01-01") & !is.na(death_rate))
+
+# Group data by date and continent to calculate average death rate
+continent_death_rate <- filtered_data %>%
+  filter(!is.na(continent) & continent != "") %>%
+  group_by(continent, date) %>%
+  summarise(death_rate = mean(death_rate, na.rm = TRUE)) %>%
+  arrange(continent, date) %>%
+  ungroup()
+
+# Calculate average death rate for the world
+world_death_rate <- filtered_data %>%
+  group_by(date) %>%
+  summarise(death_rate = mean(death_rate, na.rm = TRUE)) %>%
+  arrange(date) %>%
+  ungroup() %>%
+  mutate(continent = "World")
+
+# Combine continent and world data
+combined_death_rate <- bind_rows(continent_death_rate, world_death_rate)
+
+# Define a custom color palette
+continent_colors <- c("Africa" = "red", "Asia" = "blue", "Europe" = "green", 
+                      "North America" = "yellow", "Oceania" = "pink", 
+                      "South America" = "orange", "World" = "black")
+
+# Plot the death rate over time for each continent and the world
+death_rate_plot <- ggplot(combined_death_rate, aes(x = date, y = death_rate, color = continent)) +
+  geom_line(size = 0.7) +
+  labs(
+    title = "Death Rate Over Time by Continent and World",
+    x = "Date",
+    y = "Death Rate",
+    color = "Continent"
+  ) +
+  scale_color_manual(values = continent_colors) +
+  theme_minimal()
+
+# Print the death rate plot
+print(death_rate_plot)
+
+```
+
+**Description of Analysis and Results**:
+
+-   **Part a**: This plot shows the cumulative total cases over time for each continent and globally. The lines, differentiated by color, allow for a comparison of how the pandemic has progressed in different regions.
+
+-   **Part b**: The normalized cumulative deaths plot allows for a comparative view of how deaths have accumulated in each continent relative to their peak values. The date at which 95% of the global deaths have occurred provides a key point for comparing the impact of COVID-19 across continents.
+
+-   **Part c**: This plot visualizes the cumulative total vaccinations per hundred people over time for each continent and the world. It helps in understanding the progress of vaccination campaigns in different regions.
+
+-   **Part d**: The death rate plot shows the average death rate over time for each continent and globally, which can provide insights into the severity and impact of the pandemic in different regions.
+
+6.  **Solution Explanation:**
+
+    a. **Plotting Maps**:
+
+    -   The `rworldmap` package is used to plot maps showing `total_deaths_per_million`, `total_vaccinations_per_hundred`, and `excess_mortality_cumulative_per_million` by country.
+
+    -   The `joinCountryData2Map` function is used to merge the `current` data with the map data based on the country name.
+
+    -   The `mapCountryData` function is used to create the maps, specifying the column to plot and other customization options such as color palette, map title, ocean color, and missing country color.
+
+    b. **Finding Top Countries**:
+
+    -   The `map_data` dataframe is created by filtering `current` to include rows with non-NA values for `total_deaths_per_million`, `total_vaccinations_per_hundred`, or `excess_mortality_cumulative_per_million`.
+
+    -   The top three countries for each variable are identified using the `arrange` and `head` functions.
+
+    -   The results are combined into a single summary table, with columns for each variable and the top three countries along with their respective values.
+
+```{r message=FALSE, warning=FALSE}
+library(rworldmap)
+library(dplyr)
+mapCountryData(
+  joinCountryData2Map(
+    current, 
+    joinCode = 'NAME',
+    nameJoinColumn = 'location'
+    ), 
+  nameColumnToPlot = 'total_deaths_per_million',
+  mapTitle = "total_deaths_per_million",
+  colourPalette = "heat",
+  addLegend = TRUE,
+  oceanCol = 'lightblue',
+  missingCountryCol = 'white')
+
+mapCountryData(
+  joinCountryData2Map(
+    current, 
+    joinCode = 'NAME',
+    nameJoinColumn = 'location'
+    ), 
+  nameColumnToPlot = 'total_vaccinations_per_hundred',
+  mapTitle = "total_vaccinations_per_hundred",
+  colourPalette = "heat",
+  addLegend = TRUE,
+  oceanCol = 'lightblue',
+  missingCountryCol = 'white')
+
+mapCountryData(
+  joinCountryData2Map(
+    current, 
+    joinCode = 'NAME',
+    nameJoinColumn = 'location'
+    ), 
+  nameColumnToPlot = 'excess_mortality_cumulative_per_million',
+  mapTitle = "excess_mortality_cumulative_per_million",
+  colourPalette = "heat",
+  addLegend = TRUE,
+  oceanCol = 'lightblue',
+  missingCountryCol = 'white')
+
+map_data <- current %>%
+  filter(!is.na(total_deaths_per_million) | !is.na(total_vaccinations_per_hundred) | !is.na(excess_mortality_cumulative_per_million)) %>%
+  select(country = location, total_deaths_per_million, total_vaccinations_per_hundred, excess_mortality_cumulative_per_million)
+
+# Find top three countries for each variable
+top_deaths <- map_data %>% arrange(desc(total_deaths_per_million)) %>% head(3)
+top_vaccinations <- map_data %>% arrange(desc(total_vaccinations_per_hundred)) %>% head(3)
+top_mortality <- map_data %>% arrange(desc(excess_mortality_cumulative_per_million)) %>% head(3)
+
+# Combine into a single summary table
+summary_table <- data.frame(
+  Variable = c("Total Deaths per Million", "Total Vaccinations per Hundred", "Excess Mortality Cumulative per Million"),
+  Country1 = c(top_deaths$country[1], top_vaccinations$country[1], top_mortality$country[1]),
+  Value1 = c(top_deaths$total_deaths_per_million[1], top_vaccinations$total_vaccinations_per_hundred[1], top_mortality$excess_mortality_cumulative_per_million[1]),
+  Country2 = c(top_deaths$country[2], top_vaccinations$country[2], top_mortality$country[2]),
+  Value2 = c(top_deaths$total_deaths_per_million[2], top_vaccinations$total_vaccinations_per_hundred[2], top_mortality$excess_mortality_cumulative_per_million[2]),
+  Country3 = c(top_deaths$country[3], top_vaccinations$country[3], top_mortality$country[3]),
+  Value3 = c(top_deaths$total_deaths_per_million[3], top_vaccinations$total_vaccinations_per_hundred[3], top_mortality$excess_mortality_cumulative_per_million[3])
+)
+
+print(summary_table)
+
+```
+
+**Description of Analysis and Results**:
+
+-   **Part a**: Maps are created to visualize `total_deaths_per_million`, `total_vaccinations_per_hundred`, and `excess_mortality_cumulative_per_million` by country. These maps provide a geographical representation of the data, highlighting areas with the highest and lowest values.
+
+-   **Part b**: The summary table identifies the top three countries for each variable (`total_deaths_per_million`, `total_vaccinations_per_hundred`, and `excess_mortality_cumulative_per_million`). This table provides a quick reference to see which countries have the highest values for these key metrics.
+
+7.  **Solution Explanation**:
+
+    a. **Scatter Plot: Total Deaths per Million vs. Excess Mortality per Million**:
+
+    -   A scatter plot is created using `ggplot2` to compare `total_deaths_per_million` and `excess_mortality_cumulative_per_million`.
+
+    -   Smaller points are used for better visualization.
+
+    -   Three reference lines are added:
+
+        -   A red dashed line with slope 1 and intercept 0 (y = x), indicating equal values of total deaths and excess mortality.
+
+        -   Two blue dashed lines with slope 1 and intercepts ±3000 (y = x ± 3000), to highlight significant deviations.
+
+    -   The plot title, x-axis label, and y-axis label are added with larger font sizes for clarity.
+
+    -   Countries with a difference of at least 3000 between `total_deaths_per_million` and `excess_mortality_cumulative_per_million` are highlighted with blue points and labeled using `geom_label_repel`.
+
+    b. **Time Series Plot: Total Deaths per Million and Excess Mortality per Million Over Time**:
+
+    -   The top three countries with the largest differences between `total_deaths_per_million` and `excess_mortality_cumulative_per_million` are selected.
+
+    -   The `covid_data` dataframe is filtered for these countries and reshaped into a long format for plotting.
+
+    -   A time series plot is created using `ggplot2` to show `total_deaths_per_million` and `excess_mortality_cumulative_per_million` over time for the selected countries.
+
+    -   Different colors and line types (solid for total deaths, dashed for excess mortality) are used to differentiate between countries and metrics.
+
+    -   The plot title, x-axis label, y-axis label, legend titles, and colors are customized for better readability.
+
+```{r message=FALSE, warning=FALSE}
+
+# a.
+library(ggplot2)
+library(dplyr)
+library(ggrepel)
+
+# Create the scatter plot with smaller points and text
+scatter_plot <- ggplot(current, aes(x = total_deaths_per_million, y = excess_mortality_cumulative_per_million)) +
+  geom_point(size = 1) +  # Smaller points
+  geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +  # y = x line
+  geom_abline(slope = 1, intercept = 3000, color = "blue", linetype = "dashed") +  # y = x + 3000 line
+  geom_abline(slope = 1, intercept = -3000, color = "blue", linetype = "dashed") +  # y = x - 3000 line
+  labs(
+    title = "Total Deaths per Million vs. Excess Mortality per Million",
+    x = "Total Deaths per Million",
+    y = "Excess Mortality per Million"
+  ) +
+  theme_minimal(base_size = 15) +  # Larger base size for the plot
+  theme(plot.title = element_text(size = 20))
+
+# Identify countries where the difference is at least 3000
+significant_diff <- current %>%
+  filter(abs(excess_mortality_cumulative_per_million - total_deaths_per_million) >= 3000)
+
+# Add text labels for these countries with geom_label_repel
+scatter_plot <- scatter_plot +
+  geom_point(data = significant_diff, color = "blue", size = 1) +
+  geom_label_repel(data = significant_diff, aes(label = location), 
+                   box.padding = 0.35, point.padding = 0.5, 
+                   segment.color = 'grey50', size = 2.5)  # Smaller text
+
+# Print the scatter plot with larger size
+print(scatter_plot)
+
+# b.
+# Select three countries with the required conditions
+selected_countries <- significant_diff %>%
+  filter(!is.na(total_deaths_per_million), !is.na(excess_mortality_cumulative_per_million)) %>%
+  arrange(desc(excess_mortality_cumulative_per_million - total_deaths_per_million)) %>%
+  head(3) %>%
+  pull(location)
+
+# Filter data for selected countries
+time_series_data <- covid_data %>%
+  filter(location %in% selected_countries) %>%
+  select(location, date, total_deaths_per_million, excess_mortality_cumulative_per_million) %>%
+  pivot_longer(cols = c(total_deaths_per_million, excess_mortality_cumulative_per_million),
+               names_to = "metric", values_to = "value")
+
+# Plot time series with different colors and normal lines for each country and metric
+time_series_plot <- ggplot(time_series_data, aes(x = date, y = value, color = location, linetype = metric)) +
+  geom_line(size = 1) +
+  labs(
+    title = "Total Deaths per Million and Excess Mortality per Million Over Time",
+    x = "Date",
+    y = "Rate per Million",
+    color = "Country",
+    linetype = "Metric"
+  ) +
+  theme_minimal(base_size = 15) +  # Larger base size for the plot
+  theme(plot.title = element_text(size = 20), legend.position = "bottom") +
+  scale_color_manual(values = c("red", "blue", "green")) +
+  scale_linetype_manual(values = c("solid", "dashed"))
+
+# Print the combined time series plot with larger size
+print(time_series_plot)
+
+```
+
+**Description of Analysis and Results**:
+
+-   **Part a**: The scatter plot visualizes the relationship between `total_deaths_per_million` and `excess_mortality_cumulative_per_million` for various countries. Countries with significant differences (at least 3000) between these metrics are highlighted and labeled. This allows for an easy identification of countries with notable discrepancies.
+
+-   **Part b**: The time series plot shows how `total_deaths_per_million` and `excess_mortality_cumulative_per_million`have evolved over time for the top three countries with the largest differences between these metrics. This provides a detailed view of the trends and patterns for these specific countries, allowing for a deeper understanding of their pandemic experiences.
+
+<br/><br/>
