@@ -1,13 +1,15 @@
 ---
 title: "52414 - lab 2"
-author: "52414"
+author: '52414'
 date: "4/7/2024"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-editor_options: 
-  markdown: 
+editor_options:
+  markdown:
     wrap: 72
+  chunk_output_type: inline
 ---
 
 # *Lab 2: Text analysis, Sampling and inference*
@@ -114,6 +116,7 @@ additional data.
 #### 1. **Loading data and basic processing:**
 
 ##### a. Load the data in CSV format from the moodle file named 'merged_data_lab2.zip'.
+
 Modify all the date-related columns to a `date` format. <br>
 Additionally, read the data regarding the population over the years,
 which can be downloaded from World Bank website
@@ -179,7 +182,7 @@ names for display
 ([link](https://patentsview.org/download/data-download-dictionary)).
 <br>
 
-##### e. Display a heat map of the following countries, in this order, where on the x-axis are the different `cpc_section` categories, on the y-axis the country name, and in color the percentage of inventions in that category out of the total [ unique ]{style="color: red;"} patents in this country. What do you see? What does this order indicate? Why is it important to look at the countries in this order?
+##### e. Display a heat map of the following countries, in this order, where on the x-axis are the different `cpc_section` categories, on the y-axis the country name, and in color the percentage of inventions in that category out of the total [unique]{style="color: red;"} patents in this country. What do you see? What does this order indicate? Why is it important to look at the countries in this order?
 
 ```{r}
 selected_countries <- c("Japan", "South Korea", "China", "Taiwan", "Singapore", "Malaysia", "Poland", "Ukraine", "Romania", "Bulgaria", "Belarus", "Brazil", "Argentina", "Colombia", "Chile", "Uruguay")
@@ -352,9 +355,29 @@ f.  **Bonus (3 points)** : Think about and suggest your own method for
 
 **Solution:** (Fill code, text, plots etc.)
 
-1.a. Loading the data via URL connection:
+Loading the data via URL connection:
 
-```{r, cache=TRUE}
+# Answers:
+
+## 1.
+
+### 1.a.
+
+#### Code explanation and execution:
+
+> The code sets the working directory and loads a CSV file
+> "merged_data_lab2.csv" into a dataframe df. It converts the
+> date-related columns (patent_date, filing_date, and year) to date
+> format, ensuring the year column retains only the year part. The
+> columns disambig_country and disambig_city are renamed to country and
+> city, respectively. Next, it reads the "total_population.csv" file,
+> adjusts its column names by replacing periods with underscores and
+> removing leading 'X' characters. Similarly, it processes and renames
+> columns in a CSV file containing country codes. Finally, the first
+> five rows of the df, total_population, and country_codes dataframes
+> are displayed to confirm correct data loading and initial processing.
+
+```{r Question_1_a, cache=TRUE}
 setwd("~/Documents/HUJI/Data Analysis with R 52414/Lab2")
 
 # Load the data in CSV format from the moodle file named 'merged_data_lab2.zip'.
@@ -365,6 +388,7 @@ df$patent_date <- as.Date(df$patent_date)
 df$filing_date <- as.Date(df$filing_date)
 df$year <- as.Date(paste0(df$year, "-01-01"))
 df$year <- format(df$year, "%Y")
+
 
 # read the data regarding the population over the years, which can be downloaded from World Bank website 
 total_population <- read.csv("data/total_population.csv", skip = 3)
@@ -382,101 +406,206 @@ head(total_population, 5)
 head(country_codes, 5)
 ```
 
-##### b. Display in a new table the five newest and five oldest patent requests. For each patent keep only the record with the first inventor (`inventor_sequence`=0). Display the following columns: `patent_id`, `filing_date`, `patent_title`, `Country`. <br>
+#### Analysis of results:
 
-Next, repeat the same operation, but this time display the five cities
-with the most patents. Here do not filter by the first inventor listed;
-Instead, consider all inventors listed on the patent to be counted in
-their city.
-1.b.
+> the analysis of the results is as follows:
+
+### 1.b.
+
+#### Code explanation and execution:
+
+> The code
+
+```{r Question_1_b, cache=TRUE}
+# Ensure required libraries are loaded
+library(dplyr)
+
+# For each patent keep only the record with the first inventor (`inventor_sequence`=0).
+df_filtered_1b <- df %>% filter(inventor_sequence == 0)
+
+# Step 2: Sort the data by filing_date to get the newest and oldest patents
+df_sorted_1b <- df_filtered_1b %>% arrange(filing_date)
+
+# Display the following columns: `patent_id`, `filing_date`, `patent_title`, `Country`.
+selected_columns_1b <- df_sorted_1b %>% select(patent_id, filing_date, patent_title, country)
+
+# Display in a new table the five newest and five oldest patent requests.
+newest_patents_1b <- selected_columns_1b %>% tail(5)
+oldest_patents_1b <- selected_columns_1b %>% head(5)
+
+# Combine the newest and oldest patents into a single table
+result_1b <- bind_rows(oldest_patents_1b, newest_patents_1b)
+
+# Display the result
+print(result_1b)
+
+
+# Next, repeat the same operation, but this time display the five cities with the most patents. Here do not filter by the first inventor listed; Instead, consider all inventors listed on the patent to be counted in their city.
+
+# Step 1: Group the data by city and count the number of patents
+city_patent_counts <- df %>% 
+  group_by(city) %>% 
+  summarise(patent_count = n()) %>% 
+  arrange(desc(patent_count))
+
+# Step 2: Select the top five cities with the most patents
+top_five_cities <- city_patent_counts %>% head(5)
+
+# Step 3: Display the results
+print(top_five_cities)
+```
+
+#### Analysis of results:
+
+> the analysis of the results is as follows:
+
+## 2.
+
+### 2.a.
+
+#### Code explanation and execution:
+
+> The code
 
 ```{r, cache=TRUE}
 # YOUR CODE HERE
 ```
 
-YOUR ANALYSIS HERE
+#### Analysis of results:
 
-2.a.
+> the analysis of the results is as follows:
 
-```{r, cache=TRUE}
-# YOUR CODE HERE
-```
+### 2.b.
 
-YOUR ANALYSIS HERE
+#### Code explanation and execution:
 
-2.b.
+> The code
 
 ```{r, cache=TRUE}
 # YOUR CODE HERE
 ```
 
-YOUR ANALYSIS HERE
+#### Analysis of results: \> the analysis of the results is as follows:
 
-2.c.
+### 2.c.
 
-```{r, cache=TRUE}
-# YOUR CODE HERE
-```
+#### Code explanation and execution:
 
-YOUR ANALYSIS HERE
-
-2.d.
+> The code
 
 ```{r, cache=TRUE}
 # YOUR CODE HERE
 ```
 
-YOUR ANALYSIS HERE
+#### Analysis of results:
 
-2.e.
+> the analysis of the results is as follows:
 
-```{r, cache=TRUE}
-# YOUR CODE HERE
-```
+### 2.d.
 
-YOUR ANALYSIS HERE
+#### Code explanation and execution:
 
-2.f.
+> The code
 
 ```{r, cache=TRUE}
 # YOUR CODE HERE
 ```
 
-YOUR ANALYSIS HERE
+#### Analysis of results:
 
-3.a.
+> the analysis of the results is as follows:
 
-```{r, cache=TRUE}
-# YOUR CODE HERE
-```
+### 2.e.
 
-YOUR ANALYSIS HERE
+#### Code explanation and execution:
 
-3.b.
+> The code
 
 ```{r, cache=TRUE}
 # YOUR CODE HERE
 ```
 
-YOUR ANALYSIS HERE
+#### Analysis of results:
 
-3.c.
+> the analysis of the results is as follows:
 
-```{r, cache=TRUE}
-# YOUR CODE HERE
-```
+### 2.f.
 
-YOUR ANALYSIS HERE
+#### Code explanation and execution:
 
-3.d.
+##### The code
 
 ```{r, cache=TRUE}
 # YOUR CODE HERE
 ```
 
-YOUR ANALYSIS HERE
+#### Analysis of results:
 
-4.a
+> the analysis of the results is as follows:
+
+## 3.
+
+### 3.a.
+
+#### Code explanation and execution:
+
+> The code
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+#### Analysis of results:
+
+> the analysis of the results is as follows:
+
+### 3.b.
+
+#### Code explanation and execution:
+
+> The code
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+#### Analysis of results: \> the analysis of the results is as follows:
+
+### 3.c.
+
+#### Code explanation and execution:
+
+> The code
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+#### Analysis of results:
+
+> the analysis of the results is as follows:
+
+### 3.d.
+
+#### Code explanation and execution:
+
+> The code
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+#### Analysis of results:
+
+> the analysis of the results is as follows:
+
+## 4.
+
+### 4.a.
+
+#### Code explanation and execution:
+
+> The code
 
 ```{r}
 keyboard_neighbors <- list(
@@ -516,36 +645,56 @@ keyboard_neighbors <- list(
 # YOUR CODE HERE
 ```
 
-YOUR ANALYSIS HERE
+#### Analysis of results: \> the analysis of the results is as follows:
 
-4.b.
+### 4.b.
 
-```{r, cache=TRUE}
-# YOUR CODE HERE
-```
+#### Code explanation and execution:
 
-YOUR ANALYSIS HERE
-
-4.c.
+> The code
 
 ```{r, cache=TRUE}
 # YOUR CODE HERE
 ```
 
-YOUR ANALYSIS HERE
+#### Analysis of results: \> the analysis of the results is as follows:
 
-4.d.
+### 4.c.
 
-```{r, cache=TRUE}
-# YOUR CODE HERE
-```
+#### Code explanation and execution:
 
-YOUR ANALYSIS HERE
-
-4.e.
+> The code
 
 ```{r, cache=TRUE}
 # YOUR CODE HERE
 ```
 
-YOUR ANALYSIS HERE
+#### Analysis of results: \> the analysis of the results is as follows:
+
+### 4.d.
+
+#### Code explanation and execution:
+
+> The code
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+#### Analysis of results:
+
+> the analysis of the results is as follows:
+
+### 4.e.
+
+#### Code explanation and execution:
+
+> The code
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+#### Analysis of results:
+
+> the analysis of the results is as follows:
