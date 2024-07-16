@@ -1,0 +1,554 @@
+---
+title: "52414 - lab 2"
+author: "52414"
+date: "4/7/2024"
+output:
+  html_document:
+    df_print: paged
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+# *Lab 2: Text analysis, Sampling and inference*
+
+<br/><br/>
+
+### Submission Instructions
+
+-   This lab will be submitted in pairs (if you don't have a pair,
+    please contact us) via the submission link in moodle, by July 25th.
+    23:59.
+
+-   Your final submission should include two files: an `Rmd` file (with
+    your answers filled-in) and an `html` file that was generated
+    automatically by knitting the `Rmd` file using knitr. Name your
+    files as `<ID1>_<ID2>.Rmd` and `<ID1>_<ID2>.html` (insert your ID
+    numbers instead).
+
+-   The `Rmd` file should work without problems, only with approved
+    libraries, and without the need to read local files (!). **Incorrect
+    file names and formats will result in a 5 point deduction.**
+
+-   **Grading:** There are $4$ questions with overall $17$
+    sub-questions. Each sub-question is worth $6$ points to the overall
+    lab grade (total: $102$ points). The questions vary in length and
+    difficulty levels. It is recommended to start with the simpler and
+    shorter questions. Points may be reduced for incorrect naming of
+    files, missing parts and problems in knitting the `Rmd` file and
+    general appearance of the report.
+
+-   **Libraries:** The only allowed libraries are listed below (**do not
+    add additional libraries without permission from the course
+    staff**):
+
+```{r, echo=TRUE, results='hide', message=FALSE, warning=FALSE}
+library(tidyverse) # This includes dplyr, stringr, ggplot2, .. 
+library(data.table)
+library(ggthemes)
+library(reshape2) # melt: change data-frame format long/wide
+library(rvest)
+library(lubridate)
+library(ggridges)
+library(corrplot)
+library(wordcloud2)
+library(moments)
+library(spatstat.geom)
+library(cowplot)
+library(stringr)
+library(pbapply)
+```
+
+<br/><br/>
+
+## Analysis of Filing Patent Dataset
+
+The [PatentView](https://patentsview.org/) website hosts worldwide data
+on patents filling around the globe. We will focus on analyzing patent
+filings across different countries, exploring different types of
+patents, and conducting comparisons and basic statistical analyses using
+additional data.
+
+### General Guidance
+
+-   Your solution should be submitted as a full report integrating text,
+    code, figures and tables. For each question, describe first in the
+    text of your solution what you're trying to do, then include the
+    relevant code, then the results (e.g. figures/tables) and then a
+    textual description of them.
+
+-   In most questions the extraction/manipulation of relevant parts of
+    the data-frame can be performed using commands from the `tidyverse`
+    and `dplyr` R packages, such as `head`, `arrange`, `aggregate`,
+    `group-by`, `filter`, `select`, `summaries`, `mutate` etc.
+
+-   When displaying tables, show the relevant columns and rows with
+    meaningful names, and describe the results.
+
+-   When displaying figures, make sure that the figure is clear to the
+    reader, axis ranges are appropriate, labels for the axis, title and
+    different curves/bars are displayed clearly (font sizes are large
+    enough), a legend is shown when needed etc. Explain and describe in
+    text what is shown in the figure.
+
+-   It could be that in some cases data are missing (e.g. `NA`). Make
+    sure that all your calculations (e.g. taking the maximum, average,
+    correlation etc.) take this into account. Specifically, the
+    calculations should ignore the missing values to allow us to compute
+    the desired results for the rest of the values (for example, using
+    the option `na.rm = TRUE` or `us = "complete.obs"`).
+
+-   In some questions, especially those involving large datasets, it may
+    be beneficial to utilize the `data.table` library, which is capable
+    of handling large data relatively quickly. For further reading, you
+    can refer to their documentation.
+
+-   Chat GPT and it's friends the language models are great tools! But
+    note that they can sometimes mislead and make you go down a very
+    unoptimal way, we recommend thinking about what you want,
+    considering other offers and researching independently. **Don't use
+    them blindly**.
+
+### Questions:
+
+#### 1. **Loading data and basic processing:**
+
+##### a. Load the data in CSV format from the moodle file named 'merged_data_lab2.zip'.
+Modify all the date-related columns to a `date` format. <br>
+Additionally, read the data regarding the population over the years,
+which can be downloaded from World Bank website
+[here](https://data.worldbank.org/indicator/SP.POP.TOTL?most_recent_year_desc=true). -
+Also, download the first table that appears in the following
+[link](https://www.iban.com/country-codes), which will help you convert
+the country codes to their full names. <br> Display the first five rows
+of each of the three tables to verify that the loading was done as
+required. <br> Consider changing the format of the population data to
+make it more convenient to work with (from wide to long. This is
+recommended but not mandatory).
+
+##### b. Display in a new table the five newest and five oldest patent requests. For each patent keep only the record with the first inventor (`inventor_sequence`=0). Display the following columns: `patent_id`, `filing_date`, `patent_title`, `Country`. <br>
+
+Next, repeat the same operation, but this time display the five cities
+with the most patents. Here do not filter by the first inventor listed;
+Instead, consider all inventors listed on the patent to be counted in
+their city.
+
+#### 2. **Exploratory Data Analysis**<br>
+
+##### a. Using the population table for each year loaded in the previous question, create a new data-frame that contains columns about the `country` (full name, not 2 letter code), `year`, `patents per million`, and `inventors per million`, such that for each country and each year, there will be a row representing the number of unique patents and inventors in this country and year. Display the first few rows of that data set when sorted by country and year (in lexicographic order). <br>
+
+##### b. Display in a graph the number of patents between the years 2015-2019 for the five countries with the most inventions in 2019, and additionally for the five countries with the most inventions in 2015 (all on the same graph). Which countries had the most inventions in both years? What changed between the two groups of countries? <br>
+
+Repeat and display the same graph and analysis also for the number of
+inventors per million residents.
+
+##### c. GAMFA or Grandpa? - <img src="https://www.bigodino.it/wp-content/uploads/2017/01/Pixar-Disney-Company-Up-movie.jpg" alt="image" style="width:50px;height:50px;"/> <br>
+
+In this question, we will visually present the number of patents and
+compare them to [GAMFA
+companies](https://en.wikipedia.org/wiki/Big_Tech). Create a new column
+that contains the country name of the company that assigned the patent
+(like `disambig_country`), but if the company is from GAMFA, change its
+country name to a new country named `GAMFA`.<br> Show a plot like in 2.b
+of the number of patents in the years 2015-2019 (not normalized) of the
+`GAMFA` country and six additional countries selected such that the
+total numbers of unique patents in these countries for 2019 are the
+closest to `GAMFA` (compared to other countries). You are required to
+search for the `GAMFA` companies according to the following
+`disambig_assignee_organization`: - Apple - Amazon\
+- Microsoft - Meta - AlphaBet <br>
+
+```         
+**Remarks**<br>
+```
+
+###### 1. Check that the company names are correct and exercise judgment, consider both lower and upper-case naming, and correct the search when necessary (explain!) <br>
+
+###### 2. If you have trouble implementing the code and it takes a long time, consider using the `data.table` library, which is much more efficient for large data. Alternatively, you can narrow down the data to only the year 2019, but this will result in a deduction of some points.
+
+##### d. We would like to ask if different types of patents take different time to get approved. <br>
+
+Display the distribution of differences between the `filing_date` (the
+date of patent application filing) and `patent_date` (the date when the
+patent was registered and accepted) for all patents in each of the
+`cpc_section` categories (one graph with a seperate curve for each
+category). Use the `geom_density_ridges_gradient` graph type in
+`ggplot`. You may use the dictionary found in `g_cpc_current` under the
+relevant column to convert the code into meaningful patent category
+names for display
+([link](https://patentsview.org/download/data-download-dictionary)).
+<br>
+
+##### e. Display a heat map of the following countries, in this order, where on the x-axis are the different `cpc_section` categories, on the y-axis the country name, and in color the percentage of inventions in that category out of the total [ unique ]{style="color: red;"} patents in this country. What do you see? What does this order indicate? Why is it important to look at the countries in this order?
+
+```{r}
+selected_countries <- c("Japan", "South Korea", "China", "Taiwan", "Singapore", "Malaysia", "Poland", "Ukraine", "Romania", "Bulgaria", "Belarus", "Brazil", "Argentina", "Colombia", "Chile", "Uruguay")
+```
+
+##### f. Is the distribution of patent categories independent of the country?
+
+Use the table you've built in 2.e to test this hypothesis. Use the chi
+square test to test the claim on the entire table, if there are no
+values in a certain cell, enter the value 0. Just a reminder, the
+statistic for the test is
+$T=\sum_{i,j}\frac{\left(O_{ij}-E_{ij}\right)^{2}}{E_{ij}}\sim\chi^{2}_k$
+where in our case, $O_{ij}$ is the observed percentage in category $j$
+at country $i$, $E_{ij}$ is the expected percentage (you should derive
+it!), and $k$ the degrees of freedom (determined by the table size).<br>
+**Remark:** Do not use a chi-squared test function from library! You
+need to perform the calculations independently and explain both the
+calculations and the results in detail. An answer without thorough
+explanations will not receive any points. <br> \##### g. **Bonus (3
+points)** - Display as a bar plot, not normalized, the top-10 cities in
+terms of the number of patents during 2015-2019 in Israel. Which city
+has the most patents? Does the result surprise you (other than the
+existence of the city that raises concerns about the validity of the
+data)? Why do you think this happened? Investigate this and try to infer
+why.
+
+#### 3. **Basic Text Operations:** <br>
+
+##### a. Calculate the frequency of each word in the `patent_title` column. Remove short common words (e.g. 'is', 'an' ..) called `stop words` using the `tidytext` package, and exclude words containing special characters (such as &, #, /, , etc.). <br>
+
+Utilize `wordcloud2` to display the top 100 most frequent words among
+the remaining words. <br> Additionally, for each patent category compute
+the `ratio` of the frequency in the category vs. the frequency in the
+entire text. Filter out words that had less then `200` occurrences in
+the category. Present in subplots the five words with the highest ratio
+in each patent category (after filtering). Does the result surprise you?
+<br> \##### b. Calculate the frequency of each of the 26 letters in the
+English language (excluding special characters, considering both
+uppercase and lowercase letters). Present the frequencies sorted after
+normalization in a bar plot, i.e. the relative frequencies
+$p_i = \frac{n_i}{n}$, where $n_i$ is the number of occurrences of the
+$i^{th}$ letter, and $n$ is the total number of letters. <br>
+
+##### c. Find all patents where the first word in `patent title` is `"Method"` and contains either `"machine learning"` or `"neural net"` (or both). Display the distribution of these patents within the `cpc_section` using a normalized bar plot. <br>
+
+Next, identify and report the five most frequent words appearing as the
+`first` word in the patent title, together with their counts. Repeat for
+the five most frequent words appearing as the `last` word in the patent
+title. Are there overlapping words? **Remark:** It is recommended to use
+`stringr`, which is quite efficient.
+
+##### d. Suppose that Elon Musk and Mark Zuckerberg randomly choose two words from all the `patent_title` columns. What is the probability that they will choose the same word? <br> First, calculate this probability theoretically, i.e. in a text containing $n$ different words such that $c_i$ is the number of times that word $i$ appears ($i=1,..,n$) represent this probability as a function of the $c_i$'s (derive and write the formula), and then compute the $c_i$ values in the `patent_title` text and compute the actual probability using the formula you have derived. <br>
+
+Next, perform a simulation of 10,000 repetitions where two words are
+sampled from the text to estimate this probability empirically and
+compare to the theoretical result. <br> What would the probability of
+choosing the same word be if the two selected words uniformly from list
+of `unique` words? Did the probability increase or decrease? Explain.
+<br>
+
+#### 4. **Autocorrection:** <br>
+
+::: {.tenor-gif-embed data-postid="15009048" data-share-method="host" data-aspect-ratio="1.77778" data-width="50%"}
+<a href="https://tenor.com/view/monkey-computer-not-working-computer-broken-computer-problems-computer-issues-gif-15009048">Monkey
+Computer Not Working GIF</a> from
+<a href="https://tenor.com/search/monkey-gifs">Monkey GIFs</a>
+:::
+
+```{=html}
+<script type="text/javascript" async src="https://tenor.com/embed.js"></script>
+```
+<br> **General:** For all sub-questions of this question, treat all
+words as lowercase. Additionally, we recommend testing your functions
+with a few examples to ensure they work correctly, as running them on
+the full text can be time-consuming.
+
+##### a. Misspelling -. Write a function that takes a word and randomly selects `c` letters (input for this function) from the word and changes those letters to another letter. The change to another letter should be as follows: replace the letter with another letter selected uniformly at random among all letters adjacent to it on the keyboard. <br>
+
+You may use the list in the solution code template for 4.a at the
+bottom. <br> Next, apply the function to the word `probability`, with
+$10$ different values of `c` from 1 to 10. Display the original word
+together with the `10` misspelled words below it to verify that the
+function works as expected.
+
+##### b. Autocorrection1 - Let's correct typos automatically.
+
+Write a function that receives as input a word and a dictionary with a
+frequency for each word [(with stop words!)]{style="color: red;"}. The
+function searches the dictionary for all words similar to that word,
+with a difference of most one letter between the two. Then, the function
+returns the three words with the highest frequencies among the similar
+words, sorted by frequency. If there are less then three similar words,
+replace the missing words with `null`. <br> Select 10 random words
+randomly from the `patent_titles` column text (as in 3.d, non-unique
+part), and modify one letter in each using the first function above with
+`c=1`. <br> Next, run the correction function on each of the 10 words,
+using the dictionary with frequencies calculated from the
+`patent_titles` column as calculated in question 3.a, but this time keep
+all the stop words (do not filter them out). Finally, display a table
+with a row for each origin word, its garbled word, and the three
+correction suggestions together with their frequencies. For example, if
+we received the word: `Werd`<br> We will search for all four-letter
+words identical to it except for at most one letter, and display the
+three highest frequency words among all the matching words in a row:
+
+```{r, echo=FALSE}
+df <- data.frame(
+  original_word = "Herd",
+  garbledWord = "Werd",
+  FirstSuggestion = "word (95)",
+  SecndSuggestion = "wird (64)",
+  ThirdSuggestion = "herd (30)",
+  stringsAsFactors = FALSE
+)
+df
+```
+
+In this example, the autocorrection function will prefer to correct
+`werd` to `word` (having the highest frequency of $95$ in the
+dictionary), even-though the original correct word was `herd` (having a
+lower frequency of $30$).
+
+c.  Autocorrection2 - We will try another correction method that
+    utilizes the keyboard structure. Write a new function that takes as
+    input the distorted word and a dictionary with frequencies as in
+    4.a., and additionally the table of adjacent keyboard letters. The
+    function returns the top three suggested corrections as in 4.b.,
+    except that we allow only single letter changes that are adjacent in
+    the keyboard. For example, the misspelled word `werd` can be changed
+    in the 2nd place only to `wwrd`, `wrrd`, `wsrd`, `wdrd`, `wfrd`
+    (none of them appears in the dictionary) but not to `word`. <br> Run
+    the function and show the results in a table as we did in 4.b. for
+    10 random words from the `patent_titles` column.
+
+d.  Putting it all together - Combine all the functions you have built
+    to create a comprehensive function that takes as input a sentence
+    and a correction method (according to 4.b. or 4.c), alters a single
+    letter in each of the sentence words, and attempts to correct them.
+    The function will finally return an integer $n_{i}$ representing the
+    number of correct word corrections. <br> Demonstrate the
+    implementation of the entire process for the sentence: <br>
+    `To be or not to be, this is the question`, with `c=1` letter change
+    per word, ensuring to print the sentence at each step (in a clear
+    and convenient way for the reader!). <br> **Remark:** We recommend
+    making an Input flag so that the function prints the steps according
+    to the user's choice
+
+e.  Assessment - We will now assess the effectiveness of the two
+    auto-correction methods. Randomly select 2,000 titles from
+    `patent_titles` column. Use the function from 4.c to distort the
+    words with a single letter misspelled in each word and try to
+    correct them with each of the methods from 4.b. and 4.c. <br>
+    Present the results in a table showing the mean of percentage of
+    successfully corrected words for each method. <br> Explain the
+    results: Does using the keyboard structure improve the correctness
+    performance? <br> ***Remark:*** You can utilize the `pbsapply`
+    function to monitor the progress of the process and assess the
+    adequacy of the implementation. Under Relatively direct
+    implementation a run on all 2,000 sentences may require less than an
+    hour to run on a standard computer.</span>
+
+f.  **Bonus (3 points)** : Think about and suggest your own method for
+    autocorrection. Show in an assessment as in 4.d. that it improves
+    upon the current methods. <br> **Mey the aotucorreect be on you're
+    sydeeee!**
+
+**Good luck!**
+
+<br>
+
+**Solution:** (Fill code, text, plots etc.)
+
+1.a. Loading the data via URL connection:
+
+```{r, cache=TRUE}
+setwd("~/Documents/HUJI/Data Analysis with R 52414/Lab2")
+
+# Load the data in CSV format from the moodle file named 'merged_data_lab2.zip'.
+df <- read.csv("data/merged_data_lab2.csv")
+
+# Modify all the date-related columns to a `date` format.
+df$patent_date <- as.Date(df$patent_date)
+df$filing_date <- as.Date(df$filing_date)
+df$year <- as.Date(paste0(df$year, "-01-01"))
+df$year <- format(df$year, "%Y")
+
+# read the data regarding the population over the years, which can be downloaded from World Bank website 
+total_population <- read.csv("data/total_population.csv", skip = 3)
+library(stringr)
+names(total_population) <- gsub("\\.", "_", names(total_population))
+names(total_population) <- gsub("X", "", names(total_population))
+
+
+# download the first table that appears in the following link: https://www.iban.com/country-codes
+country_codes <- read.csv("data/country_codes.csv")
+names(country_codes) <- gsub("\\.", "_", names(country_codes))
+
+# Display the first five rows of each of the three tables to verify that the loading was done as required.
+head(df, 5)
+head(total_population, 5)
+head(country_codes, 5)
+
+# Consider changing the format of the population data to make it more convenient to work with (from wide to long. This is recommended but not mandatory).
+```
+
+##### b. Display in a new table the five newest and five oldest patent requests. For each patent keep only the record with the first inventor (`inventor_sequence`=0). Display the following columns: `patent_id`, `filing_date`, `patent_title`, `Country`. <br>
+
+Next, repeat the same operation, but this time display the five cities
+with the most patents. Here do not filter by the first inventor listed;
+Instead, consider all inventors listed on the patent to be counted in
+their city.
+1.b.
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+YOUR ANALYSIS HERE
+
+2.a.
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+YOUR ANALYSIS HERE
+
+2.b.
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+YOUR ANALYSIS HERE
+
+2.c.
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+YOUR ANALYSIS HERE
+
+2.d.
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+YOUR ANALYSIS HERE
+
+2.e.
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+YOUR ANALYSIS HERE
+
+2.f.
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+YOUR ANALYSIS HERE
+
+3.a.
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+YOUR ANALYSIS HERE
+
+3.b.
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+YOUR ANALYSIS HERE
+
+3.c.
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+YOUR ANALYSIS HERE
+
+3.d.
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+YOUR ANALYSIS HERE
+
+4.a
+
+```{r}
+keyboard_neighbors <- list(
+  q = c("w", "a", "s"),
+  w = c("q", "e", "a", "s", "d"),
+  e = c("w", "r", "s", "d", "f"),
+  r = c("e", "t", "d", "f", "g"),
+  t = c("r", "y", "f", "g", "h"),
+  y = c("t", "u", "g", "h", "j"),
+  u = c("y", "i", "h", "j", "k"),
+  i = c("u", "o", "j", "k", "l"),
+  o = c("i", "p", "k", "l"),
+  p = c("o", "l"),
+
+  a = c("q", "w", "s", "z"),
+  s = c("a", "w", "e", "d", "z", "x"),
+  d = c("s", "e", "r", "f", "x", "c"),
+  f = c("d", "r", "t", "g", "c", "v"),
+  g = c("f", "t", "y", "h", "v", "b"),
+  h = c("g", "y", "u", "j", "b", "n"),
+  j = c("h", "u", "i", "k", "n", "m"),
+  k = c("j", "i", "o", "l", "m"),
+  l = c("k", "o", "p"),
+
+  z = c("a", "s", "x"),
+  x = c("z", "s", "d", "c"),
+  c = c("x", "d", "f", "v"),
+  v = c("c", "f", "g", "b"),
+  b = c("v", "g", "h", "n"),
+  n = c("b", "h", "j", "m"),
+  m = c("n", "j", "k")
+)
+
+```
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+YOUR ANALYSIS HERE
+
+4.b.
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+YOUR ANALYSIS HERE
+
+4.c.
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+YOUR ANALYSIS HERE
+
+4.d.
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+YOUR ANALYSIS HERE
+
+4.e.
+
+```{r, cache=TRUE}
+# YOUR CODE HERE
+```
+
+YOUR ANALYSIS HERE
