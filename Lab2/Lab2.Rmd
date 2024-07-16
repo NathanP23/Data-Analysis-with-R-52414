@@ -372,17 +372,16 @@ library(stringr)
 names(total_population) <- gsub("\\.", "_", names(total_population))
 names(total_population) <- gsub("X", "", names(total_population))
 
-
 # download the first table that appears in the following link: https://www.iban.com/country-codes
 country_codes <- read.csv("data/country_codes.csv")
 names(country_codes) <- gsub("\\.", "_", names(country_codes))
+
+
 
 # Display the first five rows of each of the three tables to verify that the loading was done as required.
 head(df, 5)
 head(total_population, 5)
 head(country_codes, 5)
-
-# Consider changing the format of the population data to make it more convenient to work with (from wide to long. This is recommended but not mandatory).
 ```
 
 ##### b. Display in a new table the five newest and five oldest patent requests. For each patent keep only the record with the first inventor (`inventor_sequence`=0). Display the following columns: `patent_id`, `filing_date`, `patent_title`, `Country`. <br>
