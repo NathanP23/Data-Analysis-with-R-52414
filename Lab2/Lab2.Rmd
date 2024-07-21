@@ -3,9 +3,11 @@ title: "52414 - lab 2"
 author: '52414'
 date: "4/7/2024"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+    toc: true
+    toc_float: true
+  pdf_document: default
 editor_options:
   markdown:
     wrap: 72
@@ -115,26 +117,11 @@ additional data.
 
 #### 1. **Loading data and basic processing:**
 
-##### a. Load the data in CSV format from the moodle file named 'merged_data_lab2.zip'.
-
-Modify all the date-related columns to a `date` format. <br>
-Additionally, read the data regarding the population over the years,
-which can be downloaded from World Bank website
-[here](https://data.worldbank.org/indicator/SP.POP.TOTL?most_recent_year_desc=true). -
-Also, download the first table that appears in the following
-[link](https://www.iban.com/country-codes), which will help you convert
-the country codes to their full names. <br> Display the first five rows
-of each of the three tables to verify that the loading was done as
-required. <br> Consider changing the format of the population data to
-make it more convenient to work with (from wide to long. This is
-recommended but not mandatory).
+##### a. Load the data in CSV format from the moodle file named 'merged_data_lab2.zip'. Modify all the date-related columns to a `date` format. <br> Additionally, read the data regarding the population over the years, which can be downloaded from World Bank website [here](https://data.worldbank.org/indicator/SP.POP.TOTL?most_recent_year_desc=true). - Also, download the first table that appears in the following [link](https://www.iban.com/country-codes), which will help you convert the country codes to their full names. <br> Display the first five rows of each of the three tables to verify that the loading was done as required. <br> Consider changing the format of the population data to make it more convenient to work with (from wide to long. This is recommended but not mandatory).
 
 ##### b. Display in a new table the five newest and five oldest patent requests. For each patent keep only the record with the first inventor (`inventor_sequence`=0). Display the following columns: `patent_id`, `filing_date`, `patent_title`, `Country`. <br>
 
-Next, repeat the same operation, but this time display the five cities
-with the most patents. Here do not filter by the first inventor listed;
-Instead, consider all inventors listed on the patent to be counted in
-their city.
+##### Next, repeat the same operation, but this time display the five cities with the most patents. Here do not filter by the first inventor listed; Instead, consider all inventors listed on the patent to be counted in their city.
 
 #### 2. **Exploratory Data Analysis**<br>
 
@@ -147,19 +134,7 @@ inventors per million residents.
 
 ##### c. GAMFA or Grandpa? - <img src="https://www.bigodino.it/wp-content/uploads/2017/01/Pixar-Disney-Company-Up-movie.jpg" alt="image" style="width:50px;height:50px;"/> <br>
 
-In this question, we will visually present the number of patents and
-compare them to [GAMFA
-companies](https://en.wikipedia.org/wiki/Big_Tech). Create a new column
-that contains the country name of the company that assigned the patent
-(like `disambig_country`), but if the company is from GAMFA, change its
-country name to a new country named `GAMFA`.<br> Show a plot like in 2.b
-of the number of patents in the years 2015-2019 (not normalized) of the
-`GAMFA` country and six additional countries selected such that the
-total numbers of unique patents in these countries for 2019 are the
-closest to `GAMFA` (compared to other countries). You are required to
-search for the `GAMFA` companies according to the following
-`disambig_assignee_organization`: - Apple - Amazon\
-- Microsoft - Meta - AlphaBet <br>
+##### In this question, we will visually present the number of patents and compare them to [GAMFA companies](https://en.wikipedia.org/wiki/Big_Tech). Create a new column that contains the country name of the company that assigned the patent (like `disambig_country`), but if the company is from GAMFA, change its country name to a new country named `GAMFA`.<br> Show a plot like in 2.b of the number of patents in the years 2015-2019 (not normalized) of the `GAMFA` country and six additional countries selected such that the total numbers of unique patents in these countries for 2019 are the closest to `GAMFA` (compared to other countries). You are required to search for the `GAMFA` companies according to the following `disambig_assignee_organization`: - Apple - Amazon - Microsoft - Meta - AlphaBet <br>
 
 ```         
 **Remarks**<br>
@@ -171,16 +146,7 @@ search for the `GAMFA` companies according to the following
 
 ##### d. We would like to ask if different types of patents take different time to get approved. <br>
 
-Display the distribution of differences between the `filing_date` (the
-date of patent application filing) and `patent_date` (the date when the
-patent was registered and accepted) for all patents in each of the
-`cpc_section` categories (one graph with a seperate curve for each
-category). Use the `geom_density_ridges_gradient` graph type in
-`ggplot`. You may use the dictionary found in `g_cpc_current` under the
-relevant column to convert the code into meaningful patent category
-names for display
-([link](https://patentsview.org/download/data-download-dictionary)).
-<br>
+##### Display the distribution of differences between the `filing_date` (the date of patent application filing) and `patent_date` (the date when the patent was registered and accepted) for all patents in each of the `cpc_section` categories (one graph with a seperate curve for each category). Use the `geom_density_ridges_gradient` graph type in `ggplot`. You may use the dictionary found in `g_cpc_current` under the relevant column to convert the code into meaningful patent category names for display ([link](https://patentsview.org/download/data-download-dictionary)). <br>
 
 ##### e. Display a heat map of the following countries, in this order, where on the x-axis are the different `cpc_section` categories, on the y-axis the country name, and in color the percentage of inventions in that category out of the total [unique]{style="color: red;"} patents in this country. What do you see? What does this order indicate? Why is it important to look at the countries in this order?
 
@@ -190,41 +156,13 @@ selected_countries <- c("Japan", "South Korea", "China", "Taiwan", "Singapore", 
 
 ##### f. Is the distribution of patent categories independent of the country?
 
-Use the table you've built in 2.e to test this hypothesis. Use the chi
-square test to test the claim on the entire table, if there are no
-values in a certain cell, enter the value 0. Just a reminder, the
-statistic for the test is
-$T=\sum_{i,j}\frac{\left(O_{ij}-E_{ij}\right)^{2}}{E_{ij}}\sim\chi^{2}_k$
-where in our case, $O_{ij}$ is the observed percentage in category $j$
-at country $i$, $E_{ij}$ is the expected percentage (you should derive
-it!), and $k$ the degrees of freedom (determined by the table size).<br>
-**Remark:** Do not use a chi-squared test function from library! You
-need to perform the calculations independently and explain both the
-calculations and the results in detail. An answer without thorough
-explanations will not receive any points. <br> \##### g. **Bonus (3
-points)** - Display as a bar plot, not normalized, the top-10 cities in
-terms of the number of patents during 2015-2019 in Israel. Which city
-has the most patents? Does the result surprise you (other than the
-existence of the city that raises concerns about the validity of the
-data)? Why do you think this happened? Investigate this and try to infer
-why.
+##### Use the table you've built in 2.e to test this hypothesis. Use the chi square test to test the claim on the entire table, if there are no values in a certain cell, enter the value 0. Just a reminder, the statistic for the test is $T=\sum_{i,j}\frac{\left(O_{ij}-E_{ij}\right)^{2}}{E_{ij}}\sim\chi^{2}_k$ where in our case, $O_{ij}$ is the observed percentage in category $j$ at country $i$, $E_{ij}$ is the expected percentage (you should derive it!), and $k$ the degrees of freedom (determined by the table size).<br> **Remark:** Do not use a chi-squared test function from library! You need to perform the calculations independently and explain both the calculations and the results in detail. An answer without thorough explanations will not receive any points. <br> \##### g. **Bonus (3 points)** - Display as a bar plot, not normalized, the top-10 cities in terms of the number of patents during 2015-2019 in Israel. Which city has the most patents? Does the result surprise you (other than the existence of the city that raises concerns about the validity of the data)? Why do you think this happened? Investigate this and try to infer why.
 
 #### 3. **Basic Text Operations:** <br>
 
 ##### a. Calculate the frequency of each word in the `patent_title` column. Remove short common words (e.g. 'is', 'an' ..) called `stop words` using the `tidytext` package, and exclude words containing special characters (such as &, #, /, , etc.). <br>
 
-Utilize `wordcloud2` to display the top 100 most frequent words among
-the remaining words. <br> Additionally, for each patent category compute
-the `ratio` of the frequency in the category vs. the frequency in the
-entire text. Filter out words that had less then `200` occurrences in
-the category. Present in subplots the five words with the highest ratio
-in each patent category (after filtering). Does the result surprise you?
-<br> \##### b. Calculate the frequency of each of the 26 letters in the
-English language (excluding special characters, considering both
-uppercase and lowercase letters). Present the frequencies sorted after
-normalization in a bar plot, i.e. the relative frequencies
-$p_i = \frac{n_i}{n}$, where $n_i$ is the number of occurrences of the
-$i^{th}$ letter, and $n$ is the total number of letters. <br>
+##### Utilize `wordcloud2` to display the top 100 most frequent words among the remaining words. <br> Additionally, for each patent category compute the `ratio` of the frequency in the category vs. the frequency in the entire text. Filter out words that had less then `200` occurrences in the category. Present in subplots the five words with the highest ratio in each patent category (after filtering). Does the result surprise you? <br> \##### b. Calculate the frequency of each of the 26 letters in the English language (excluding special characters, considering both uppercase and lowercase letters). Present the frequencies sorted after normalization in a bar plot, i.e. the relative frequencies $p_i = \frac{n_i}{n}$, where $n_i$ is the number of occurrences of the $i^{th}$ letter, and $n$ is the total number of letters. <br>
 
 ##### c. Find all patents where the first word in `patent title` is `"Method"` and contains either `"machine learning"` or `"neural net"` (or both). Display the distribution of these patents within the `cpc_section` using a normalized bar plot. <br>
 
@@ -365,99 +303,112 @@ Loading the data via URL connection:
 
 #### Code explanation and execution:
 
-> The code sets the working directory and loads a CSV file
-> "merged_data_lab2.csv" into a dataframe df. It converts the
-> date-related columns (patent_date, filing_date, and year) to date
-> format, ensuring the year column retains only the year part. The
-> columns disambig_country and disambig_city are renamed to country and
-> city, respectively. Next, it reads the "total_population.csv" file,
-> adjusts its column names by replacing periods with underscores and
-> removing leading 'X' characters. Similarly, it processes and renames
-> columns in a CSV file containing country codes. Finally, the first
-> five rows of the df, total_population, and country_codes dataframes
-> are displayed to confirm correct data loading and initial processing.
+> The code sets the working directory using `setwd()` and loads a CSV
+> file `merged_data_lab2.csv` into a DataFrame `df` using `read_csv()`.
+> It converts the columns `patent_date` and `filing_date` to `Date`
+> format using `mutate()` and `as.Date()`. The code also reads
+> `total_population.csv` into `total_population`, renames its columns to
+> replace periods and remove leading `X` characters using `rename_all()`
+> and `str_replace_all()`, and processes the `country_codes` CSV
+> similarly. It prints the first five rows of `df`, `total_population`,
+> and `country_codes` to confirm data loading using `head()`.
 
 ```{r Question_1_a, cache=TRUE}
+library(dplyr)
+library(readr)
+library(stringr)
+
+# Set working directory
 setwd("~/Documents/HUJI/Data Analysis with R 52414/Lab2")
 
-# Load the data in CSV format from the moodle file named 'merged_data_lab2.zip'.
-df <- read.csv("data/merged_data_lab2.csv")
+# Unzip and load the main data
+unzip("data/merged_data_lab2.zip", exdir = "data")
+df <- read_csv("data/merged_data_lab2.csv")#, n_max = 100)
 
-# Modify all the date-related columns to a `date` format.
-df$patent_date <- as.Date(df$patent_date)
-df$filing_date <- as.Date(df$filing_date)
-df$year <- as.Date(paste0(df$year, "-01-01"))
-df$year <- format(df$year, "%Y")
+# Convert date columns to Date format
+df <- df %>%
+  mutate(
+    patent_date = as.Date(patent_date),
+    filing_date = as.Date(filing_date),
+  )
+
+# Load population data
+total_population <- read_csv("data/total_population.csv", skip = 3) %>%
+  rename_all(~ str_replace_all(., "\\.", "_")) %>%
+  rename_all(~ str_replace_all(., " ", "_")) %>%
+  rename_all(~ str_remove(., "^X"))
+
+# Load country codes data
+country_codes <- read_csv("data/country_codes.csv") %>%
+  rename_all(~ str_replace_all(., "\\.", "_")) %>%
+  rename_all(~ str_replace_all(., " ", "_")) %>%
+  rename_all(~ str_replace_all(., "-", "_"))
 
 
-# read the data regarding the population over the years, which can be downloaded from World Bank website 
-total_population <- read.csv("data/total_population.csv", skip = 3)
-library(stringr)
-names(total_population) <- gsub("\\.", "_", names(total_population))
-names(total_population) <- gsub("X", "", names(total_population))
+print_df_info <- function(df_name) {
+  cat("Data frame name:", deparse(substitute(df_name)), "\n")
+  cat("Column names:\n")
+  print(colnames(df_name))
+}
 
-# download the first table that appears in the following link: https://www.iban.com/country-codes
-country_codes <- read.csv("data/country_codes.csv")
-names(country_codes) <- gsub("\\.", "_", names(country_codes))
+print_df_info(df)
+print_df_info(total_population)
+print_df_info(country_codes)
 
-# Display the first five rows of each of the three tables to verify that the loading was done as required.
-head(df, 5)
-head(total_population, 5)
-head(country_codes, 5)
+# Display the first five rows of each table
+print(head(df, 5))
+print(head(total_population, 5))
+print(head(country_codes, 5))
 ```
 
 #### Analysis of results:
 
-> the analysis of the results is as follows:
+> Here we only get the first 5 rows of each table to verify that the
+> different DataFrames were loaded correctly.
 
 ### 1.b.
 
 #### Code explanation and execution:
 
-> The code
+> The code uses `dplyr` to filter `df` for `inventor_sequence` equal to
+> 0, sorts by `filing_date`, and selects columns `patent_id`,
+> `filing_date`, `patent_title`, and `disambig_city`. It extracts the
+> five oldest and newest patents into `result_1b`. For city-level
+> analysis, it groups by `disambig_city`, counts patents with
+> `summarise(n())`, sorts in descending order, and selects the top five
+> cities in `top_five_cities_1b`.
 
 ```{r Question_1_b, cache=TRUE}
-# Ensure required libraries are loaded
 library(dplyr)
 
-# For each patent keep only the record with the first inventor (`inventor_sequence`=0).
+# Filter for the first inventor (inventor_sequence = 0)
 df_filtered_1b <- df %>% filter(inventor_sequence == 0)
 
-# Step 2: Sort the data by filing_date to get the newest and oldest patents
+# Sort by filing_date to get the newest and oldest patents
 df_sorted_1b <- df_filtered_1b %>% arrange(filing_date)
 
-# Display the following columns: `patent_id`, `filing_date`, `patent_title`, `Country`.
-selected_columns_1b <- df_sorted_1b %>% select(patent_id, filing_date, patent_title, country)
+# Select specific columns and display the five newest and five oldest patent requests
+result_1b <- df_sorted_1b %>%
+  select(patent_id, filing_date, patent_title, disambig_city) %>%
+  slice(c(1:5, (n()-4):n()))
 
-# Display in a new table the five newest and five oldest patent requests.
-newest_patents_1b <- selected_columns_1b %>% tail(5)
-oldest_patents_1b <- selected_columns_1b %>% head(5)
-
-# Combine the newest and oldest patents into a single table
-result_1b <- bind_rows(oldest_patents_1b, newest_patents_1b)
-
-# Display the result
 print(result_1b)
 
+# Group by city and count the number of patents
+top_five_cities_1b <- df %>%
+  group_by(disambig_city) %>%
+  summarise(patent_count = n()) %>%
+  arrange(desc(patent_count)) %>%
+  slice(1:5)
 
-# Next, repeat the same operation, but this time display the five cities with the most patents. Here do not filter by the first inventor listed; Instead, consider all inventors listed on the patent to be counted in their city.
-
-# Step 1: Group the data by city and count the number of patents
-city_patent_counts <- df %>% 
-  group_by(city) %>% 
-  summarise(patent_count = n()) %>% 
-  arrange(desc(patent_count))
-
-# Step 2: Select the top five cities with the most patents
-top_five_cities <- city_patent_counts %>% head(5)
-
-# Step 3: Display the results
-print(top_five_cities)
+print(top_five_cities_1b)
 ```
 
 #### Analysis of results:
 
-> the analysis of the results is as follows:
+> Nothing too special yet, just the first 5 rows of the data showing the
+> oldest and newest patents and the top 5 cities with the most patents
+> (Tokyo, Seoul, Beijing, Yokohama, San Jose)
 
 ## 2.
 
@@ -465,36 +416,431 @@ print(top_five_cities)
 
 #### Code explanation and execution:
 
-> The code
+> The code merges `total_population` with `country_codes` using
+> `inner_join()` to add full country names and 2-letter codes, storing
+> the result in `merged_population_2a`. It aggregates `df` by country
+> and year, counting unique patents using `n_distinct(patent_id)` and
+> unique inventors using `n_distinct(inventor_id)`, and stores this in
+> `df_aggregated_2a`. The code pivots `merged_population_2a` to a long
+> format using `pivot_longer()`, creating `population_long_2a`. Finally,
+> it merges `df_aggregated_2a` with `population_long_2a` using
+> `inner_join()` to calculate patents and inventors per million people
+> using `mutate()`, storing the result in `final_df_2a`.
 
-```{r, cache=TRUE}
-# YOUR CODE HERE
+```{r Question_2_a, cache=TRUE}
+# Load necessary libraries
+library(dplyr) # For data manipulation
+library(tidyr) # For data tidying
+
+# Step 1: Merge total_population with country_codes to get the full country names and 2-letter codes
+merged_population_2a <- total_population %>%
+  select(Country_Name, Country_Code, starts_with("19"), starts_with("20")) %>% 
+  # select(Country_Name, Country_Code, starts_with("19"), starts_with("20")): 
+  # This selects specific columns from the total_population data frame:
+  # Country_Name and Country_Code are directly selected.
+  # starts_with("19") and starts_with("20") select all columns that start with "19" or "20", representing years from 1960 to 2015.
+  
+  inner_join(country_codes, by = c("Country_Code" = "Alpha_3_code"))
+  # inner_join(country_codes, by = c("Country_Code" = "Alpha_3_code")): 
+  # This merges total_population with country_codes on the matching 3-letter country codes.
+  # by = c("Country_Code" = "Alpha_3_code") specifies the columns to use for the join: Country_Code from total_population and Alpha_3_code from country_codes.
+
+# Step 2: Aggregate df by country and year to count unique patents and inventors
+df_aggregated_2a <- df %>%
+  inner_join(country_codes, by = c("disambig_country" = "Alpha_2_code")) %>% 
+  # inner_join(country_codes, by = c("disambig_country" = "Alpha_2_code")): 
+  # This merges df with country_codes to add the full country names and 3-letter country codes using the 2-letter country codes.
+  # by = c("disambig_country" = "Alpha_2_code") specifies the columns to use for the join: disambig_country from df and Alpha_2_code from country_codes.
+  
+  mutate(year = as.numeric(format(as.Date(patent_date), "%Y"))) %>% 
+  # mutate(year = as.numeric(format(as.Date(patent_date), "%Y"))): 
+  # This extracts the year from the patent_date column and converts it to a numeric type.
+  # as.Date(patent_date) converts the patent_date to a date object.
+  # format(..., "%Y") extracts the year as a string.
+  # as.numeric(...) converts the year string to a numeric value.
+  
+  group_by(Country, year) %>% 
+  # group_by(Country, year): 
+  # This groups the data by Country and year, allowing for aggregation within each group.
+  
+  summarize(unique_patents = n_distinct(patent_id), unique_inventors = n_distinct(inventor_id), .groups = 'drop') 
+  # summarize(unique_patents = n_distinct(patent_id), unique_inventors = n_distinct(inventor_id), .groups = 'drop'): 
+  # This summarizes the data by counting the number of distinct patent_id (unique patents) and inventor_id (unique inventors) within each group.
+  # n_distinct(...) counts the number of unique values.
+  # .groups = 'drop' removes the grouping after summarizing, returning to an ungrouped data frame.
+
+# Step 3: Pivot total_population to long format to get year-wise population data
+population_long_2a <- merged_population_2a %>%
+  pivot_longer(cols = starts_with("19") | starts_with("20"), names_to = "year", values_to = "population") %>% 
+  # pivot_longer(cols = starts_with("19") | starts_with("20"), names_to = "year", values_to = "population"): 
+  # This converts the data from wide format to long format.
+  # cols = starts_with("19") | starts_with("20") specifies the columns to pivot: all columns starting with "19" or "20".
+  # names_to = "year" specifies that the names of the pivoted columns (the years) will be stored in a new column named "year".
+  # values_to = "population" specifies that the values of the pivoted columns will be stored in a new column named "population".
+  
+  mutate(year = as.numeric(year)) 
+  # mutate(year = as.numeric(year)): 
+  # This converts the year column from character type to numeric type.
+
+# Step 4: Merge the aggregated patent data with the population data and calculate metrics
+final_df_2a <- df_aggregated_2a %>%
+  inner_join(population_long_2a, by = c("Country" = "Country_Name", "year")) %>% 
+  # inner_join(population_long_2a, by = c("Country" = "Country_Name", "year")): 
+  # This merges the aggregated patent data with the long-format population data.
+  # by = c("Country" = "Country_Name", "year") specifies the columns to use for the join: Country from df_aggregated_2a and Country_Name from population_long_2a, and year from both data frames.
+  
+  mutate(
+    patents_per_million = unique_patents / (population / 1e6), 
+    # patents_per_million = unique_patents / (population / 1e6): 
+    # This calculates the number of patents per million people by dividing the count of unique patents by the population (in millions).
+    
+    inventors_per_million = unique_inventors / (population / 1e6) 
+    # inventors_per_million = unique_inventors / (population / 1e6): 
+    # This calculates the number of inventors per million people by dividing the count of unique inventors by the population (in millions).
+  ) %>%
+  select(Country, year, patents_per_million, inventors_per_million) %>% 
+  # select(Country, year, patents_per_million, inventors_per_million): 
+  # This keeps only the specified columns in the final data frame.
+  
+  arrange(Country, year) 
+  # arrange(Country, year): 
+  # This sorts the data frame first by Country and then by year in ascending order.
+
+# Display the first few rows of the final data frame
+head(final_df_2a)
+# head(final_df_2a): 
+# This displays the first few rows of the final data frame for inspection.
+
+write.csv(final_df_2a, "df.csv")
+```
+
+#### Analysis of results:
+
+> The data-set provides a snapshot of innovation metrics across various
+> countries from 2016 to 2020, focusing on patents and inventors per
+> million people. Initial observations reveal substantial variability
+> both across countries and over time. For instance, Afghanistan
+> exhibits fluctuating rates of patents and inventors, with notable
+> peaks in 2018. Such volatility might be attributable to
+> socio-political factors or changes in economic policies. Comparing
+> countries, those with robust innovation ecosystems, like those in
+> North America, Europe, or East Asia, likely display consistently
+> higher numbers of patents and inventors per million. This trend
+> suggests a strong correlation between economic development, education
+> systems, and innovation outputs. Further, the data can illuminate
+> regional trends, such as higher innovation rates in technologically
+> advanced regions compared to developing ones. Understanding these
+> patterns can help policymakers identify successful strategies and
+> areas needing support to foster innovation globally.
+
+### 2.b.
+
+#### Code explanation and execution:
+
+> The code aggregates `df` to find the total number of inventions per
+> country for 2015-2019 using `group_by()` and
+> `summarize(n_distinct(patent_id))`, storing results in
+> `df_inventions_2b`. It identifies the top five countries with the most
+> inventions in 2015 and 2019 using `filter(year == 2015)` and
+> `filter(year == 2019)`, combines these lists using `union()`, and
+> filters the data to include only these countries using
+> `filter(Country %in% top_countries_combined_2b)`. It creates a graph
+> displaying the number of patents for these countries between 2015-2019
+> using `ggplot()`, `geom_line()`, and `labs()`. Finally, it analyzes
+> which countries had the most inventions in both years and the changes
+> between the two groups of countries using `intersect()` and
+> `setdiff()`.
+
+```{r Question_2_b, cache=TRUE}
+# Load necessary libraries
+library(dplyr) # For data manipulation
+library(ggplot2) # For data visualization
+
+# Step 1: Aggregate the data to find the total number of inventions per country for the years 2015 and 2019
+df_inventions_2b <- df %>%
+  inner_join(country_codes, by = c("disambig_country" = "Alpha_2_code")) %>% 
+  # Join df with country_codes on 2-letter country codes to add full country names
+  
+  mutate(year = as.numeric(format(as.Date(patent_date), "%Y"))) %>% 
+  # Extract the year from patent_date and convert it to numeric
+  
+  filter(year >= 2015 & year <= 2019) %>% 
+  # Filter the data to include only the years 2015 to 2019
+  
+  group_by(Country, year) %>% 
+  # Group the data by Country and year
+  
+  summarize(total_inventions = n_distinct(patent_id), .groups = 'drop') 
+  # Summarize the data to count the number of unique patents per country per year
+
+# Step 2: Identify the top five countries with the most inventions in 2015 and 2019
+top_countries_2015_2b <- df_inventions_2b %>%
+  filter(year == 2015) %>%
+  # Filter the data to include only the year 2015
+  
+  top_n(5, wt = total_inventions) %>%
+  # Select the top 5 countries with the most inventions in 2015
+  
+  pull(Country)
+  # Extract the country names
+
+top_countries_2019_2b <- df_inventions_2b %>%
+  filter(year == 2019) %>%
+  # Filter the data to include only the year 2019
+  
+  top_n(5, wt = total_inventions) %>%
+  # Select the top 5 countries with the most inventions in 2019
+  
+  pull(Country)
+  # Extract the country names
+
+# Combine the top countries from 2015 and 2019
+top_countries_combined_2b <- union(top_countries_2015_2b, top_countries_2019_2b)
+# Create a combined list of unique top countries from both 2015 and 2019
+
+# Step 3: Filter the data to include only these countries for the years 2015-2019
+df_filtered_2b <- df_inventions_2b %>%
+  filter(Country %in% top_countries_combined_2b)
+  # Filter the data to include only the top countries for the years 2015-2019
+
+# Step 4: Create a graph to display the number of patents for these countries between 2015 and 2019
+ggplot(df_filtered_2b, aes(x = year, y = total_inventions, color = Country)) +
+  # Initialize ggplot with the filtered data, mapping year to x-axis, total_inventions to y-axis, and color by Country
+  
+  geom_line(size = 1.2) +
+  # Add a line geometry to the plot with a specified line size
+  
+  labs(title = "Number of Patents (2015-2019) for Top Countries",
+       x = "Year",
+       y = "Number of Patents",
+       color = "Country") +
+  # Add labels for the title, x-axis, y-axis, and legend
+  
+  theme_minimal()
+  # Apply a minimal theme to the plot for a clean appearance
+
+# Step 5: Analyze which countries had the most inventions in both years and what changed between the two groups of countries
+common_countries_2b <- intersect(top_countries_2015_2b, top_countries_2019_2b)
+# Find countries that are in the top 5 for both 2015 and 2019
+
+only_2015_2b <- setdiff(top_countries_2015_2b, top_countries_2019_2b)
+# Find countries that are in the top 5 in 2015 but not in 2019
+
+only_2019_2b <- setdiff(top_countries_2019_2b, top_countries_2015_2b)
+# Find countries that are in the top 5 in 2019 but not in 2015
+
+# Display the results
+list(
+  common_countries_2b = common_countries_2b,
+  only_2015_2b = only_2015_2b,
+  only_2019_2b = only_2019_2b
+)
+# Return a list containing the common countries, those only in 2015, and those only in 2019
+
+
+
+# Load necessary libraries
+library(dplyr) # For data manipulation
+library(ggplot2) # For data visualization
+
+# Step 1: Aggregate the data to find the total number of inventors per million residents per country for the years 2015-2019
+df_inventors_2b <- df %>%
+  inner_join(country_codes, by = c("disambig_country" = "Alpha_2_code")) %>% 
+  # Join df with country_codes on 2-letter country codes to add full country names
+  
+  mutate(year = as.numeric(format(as.Date(patent_date), "%Y"))) %>% 
+  # Extract the year from patent_date and convert it to numeric for filtering
+  
+  filter(year >= 2015 & year <= 2019) %>% 
+  # Filter the data to include only the years 2015 to 2019
+  
+  group_by(Country, year) %>% 
+  # Group the data by Country and year to prepare for summarizing
+  
+  summarize(total_inventors = n_distinct(inventor_id), .groups = 'drop') 
+  # Summarize the data to count the number of unique inventors per country per year
+
+# Merge with total_population data to get population for each country and year
+df_population_2b <- total_population %>%
+  select(Country_Name, Country_Code, starts_with("19"), starts_with("20")) %>% 
+  # Select relevant columns from total_population: Country_Name, Country_Code, and year columns
+  
+  inner_join(country_codes, by = c("Country_Code" = "Alpha_3_code")) %>% 
+  # Join with country_codes on 3-letter country codes to add the full country names and 2-letter codes
+  
+  pivot_longer(cols = starts_with("19") | starts_with("20"), names_to = "year", values_to = "population") %>% 
+  # Pivot the data from wide to long format to have a year-wise population column
+  
+  mutate(year = as.numeric(year)) 
+  # Convert the year column from character to numeric for merging
+
+df_inventors_2b <- df_inventors_2b %>%
+  inner_join(df_population_2b, by = c("Country" = "Country_Name", "year")) %>% 
+  # Merge the inventors data with the population data on Country and year
+  
+  mutate(inventors_per_million = total_inventors / (population / 1e6)) 
+  # Calculate the number of inventors per million residents
+
+# Step 2: Identify the top five countries with the most inventors per million residents in 2015 and 2019
+top_countries_inventors_2015_2b <- df_inventors_2b %>%
+  filter(year == 2015) %>% 
+  # Filter the data to include only the year 2015
+  
+  top_n(5, wt = inventors_per_million) %>% 
+  # Select the top 5 countries with the most inventors per million residents in 2015
+  
+  pull(Country) 
+  # Extract the country names from the filtered data
+
+top_countries_inventors_2019_2b <- df_inventors_2b %>%
+  filter(year == 2019) %>% 
+  # Filter the data to include only the year 2019
+  
+  top_n(5, wt = inventors_per_million) %>% 
+  # Select the top 5 countries with the most inventors per million residents in 2019
+  
+  pull(Country) 
+  # Extract the country names from the filtered data
+
+# Combine the top countries from 2015 and 2019
+top_countries_inventors_combined_2b <- union(top_countries_inventors_2015_2b, top_countries_inventors_2019_2b) 
+# Create a combined list of unique top countries from both 2015 and 2019
+
+# Step 3: Filter the data to include only these countries for the years 2015-2019
+df_filtered_inventors_2b <- df_inventors_2b %>%
+  filter(Country %in% top_countries_inventors_combined_2b) 
+  # Filter the data to include only the top countries for the years 2015-2019
+
+# Step 4: Create a graph to display the number of inventors per million residents for these countries between 2015 and 2019
+ggplot(df_filtered_inventors_2b, aes(x = year, y = inventors_per_million, color = Country)) + 
+  # Initialize ggplot with the filtered data, mapping year to x-axis, inventors_per_million to y-axis, and color by Country
+  
+  geom_line(size = 1.2) + 
+  # Add a line geometry to the plot with a specified line size
+  
+  labs(title = "Number of Inventors per Million Residents (2015-2019) for Top Countries",
+       x = "Year",
+       y = "Number of Inventors per Million",
+       color = "Country") + 
+  # Add labels for the title, x-axis, y-axis, and legend
+  
+  theme_minimal() 
+  # Apply a minimal theme to the plot for a clean appearance
+
+# Step 5: Analyze which countries had the most inventors per million in both years and what changed between the two groups of countries
+common_countries_inventors_2b <- intersect(top_countries_inventors_2015_2b, top_countries_inventors_2019_2b) 
+# Find countries that are in the top 5 for both 2015 and 2019
+
+only_inventors_2015_2b <- setdiff(top_countries_inventors_2015_2b, top_countries_inventors_2019_2b) 
+# Find countries that are in the top 5 in 2015 but not in 2019
+
+only_inventors_2019_2b <- setdiff(top_countries_inventors_2019_2b, top_countries_inventors_2015_2b) 
+# Find countries that are in the top 5 in 2019 but not in 2015
+
+# Display the results
+list(
+  common_countries_inventors_2b = common_countries_inventors_2b, 
+  # List of countries in the top 5 for both 2015 and 2019
+  
+  only_inventors_2015_2b = only_inventors_2015_2b, 
+  # List of countries in the top 5 only in 2015
+  
+  only_inventors_2019_2b = only_inventors_2019_2b 
+  # List of countries in the top 5 only in 2019
+)
+
+
+
 ```
 
 #### Analysis of results:
 
 > the analysis of the results is as follows:
 
-### 2.b.
-
-#### Code explanation and execution:
-
-> The code
-
-```{r, cache=TRUE}
-# YOUR CODE HERE
-```
-
-#### Analysis of results: \> the analysis of the results is as follows:
-
 ### 2.c.
 
 #### Code explanation and execution:
 
-> The code
+> The code 
 
-```{r, cache=TRUE}
-# YOUR CODE HERE
+```{r Question_2_c, cache=TRUE}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(data.table)
+
+# Assuming the data frames `df` and `country_codes` are already loaded
+
+# Step 1: Create a new column that contains the country name, but change it to "GAMFA" for GAMFA companies
+# Define the GAMFA companies
+gamfa_companies <- c("Apple", "Amazon", "Microsoft", "Meta", "Alphabet")
+
+# Create a new column 'assignee_country_gamfa'
+df <- df %>%
+  mutate(
+    assignee_country_gamfa = ifelse(
+      tolower(disambig_assignee_organization) %in% tolower(gamfa_companies),
+      "GAMFA",
+      disambig_country
+    )
+  )
+# Explanation:
+# - tolower is used to handle both lower and upper-case naming.
+# - ifelse checks if the assignee organization is in the list of GAMFA companies and assigns "GAMFA" if true.
+
+# Step 2: Filter the data for the years 2015-2019
+df_filtered_2c <- df %>%
+  mutate(year = as.numeric(format(as.Date(patent_date), "%Y"))) %>% # Extract year from patent_date
+  filter(year >= 2015 & year <= 2019) # Filter for the years 2015-2019
+
+# Step 3: Aggregate the number of patents by country and year
+patents_by_country_2c <- df_filtered_2c %>%
+  group_by(assignee_country_gamfa, year) %>% # Group by country and year
+  summarize(total_patents = n_distinct(patent_id), .groups = 'drop') # Count unique patents
+
+# Step 4: Identify the top six countries (other than GAMFA) whose total number of unique patents in 2019 are closest to that of GAMFA
+# Get the total number of patents for GAMFA in 2019
+gamfa_patents_2019 <- patents_by_country_2c %>%
+  filter(assignee_country_gamfa == "GAMFA" & year == 2019) %>%
+  pull(total_patents)
+
+# Get the total number of patents for each country in 2019
+patents_2019 <- patents_by_country_2c %>%
+  filter(year == 2019)
+
+# Calculate the absolute difference from GAMFA and arrange by this difference
+closest_countries_2019 <- patents_2019 %>%
+  filter(assignee_country_gamfa != "GAMFA") %>%
+  mutate(diff_from_gamfa = abs(total_patents - gamfa_patents_2019)) %>%
+  arrange(diff_from_gamfa) %>%
+  head(6) %>%
+  pull(assignee_country_gamfa)
+
+# Combine GAMFA and the closest six countries
+top_countries_2c <- c("GAMFA", closest_countries_2019)
+
+# Step 5: Filter the data to include only these countries for the years 2015-2019
+df_top_countries_2c <- patents_by_country_2c %>%
+  filter(assignee_country_gamfa %in% top_countries_2c)
+
+# Step 6: Create a graph to display the number of patents for these countries between 2015 and 2019
+ggplot(df_top_countries_2c, aes(x = year, y = total_patents, color = assignee_country_gamfa)) +
+  geom_line(size = 1.2) +
+  labs(title = "Number of Patents (2015-2019) for GAMFA and Closest Countries",
+       x = "Year",
+       y = "Number of Patents",
+       color = "Country") +
+  theme_minimal()
+
+# Display the plot
+print(ggplot(df_top_countries_2c, aes(x = year, y = total_patents, color = assignee_country_gamfa)) +
+  geom_line(size = 1.2) +
+  labs(title = "Number of Patents (2015-2019) for GAMFA and Closest Countries",
+       x = "Year",
+       y = "Number of Patents",
+       color = "Country") +
+  theme_minimal())
+
 ```
 
 #### Analysis of results:
