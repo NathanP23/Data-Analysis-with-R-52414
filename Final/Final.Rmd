@@ -117,36 +117,20 @@ Good luck!
 
 
 ```{r, cache=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+# List of packages
+packages <- c("wikiTools", "httr", "jsonlite", "data.table", "readr", "tidyr", 
+              "pbapply", "dplyr", "ggplot2", "patchwork", "stringr", "pracma", "reshape2") # nolint
 
+# Function to check and install packages
+install_if_missing <- function(pkg) {
+  if (!require(pkg, character.only = TRUE)) {
+    install.packages(pkg, dependencies = TRUE)
+  }
+  library(pkg, character.only = TRUE)
+}
 
-library(wikiTools)
-
-library(httr)
-
-library(jsonlite)
-
-library(data.table)
-
-library(readr)
-
-library(tidyr)
-
-library(pbapply)
-
-library(dplyr)
-
-library(ggplot2)
-
-library(data.table)
-
-library(patchwork)
-
-library(stringr)
-
-library(pracma)
-
-library(reshape2)
-
+# Apply the function to each package
+invisible(lapply(packages, install_if_missing))
 ```
 
 
