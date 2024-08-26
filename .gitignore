@@ -13,3 +13,8 @@ Lab1/.Rhistory
 .DS_Store
 .Rhistory
 .Rproj.user
+Final/data/
+Final/*
+Final/data/
+Final/*
+!Final/*.Rmd
