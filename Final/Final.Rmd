@@ -118,8 +118,10 @@ Good luck!
 
 ```{r, cache=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
 # List of packages
-packages <- c("wikiTools", "httr", "jsonlite", "data.table", "readr", "tidyr", 
-              "pbapply", "dplyr", "ggplot2", "patchwork", "stringr", "pracma", "reshape2") # nolint
+packages <- c(
+  "wikiTools", "httr", "jsonlite", "data.table", "readr", "tidyr",
+  "pbapply", "dplyr", "ggplot2", "patchwork", "stringr", "pracma", "reshape2"
+) # nolint
 
 # Function to check and install packages
 install_if_missing <- function(pkg) {
@@ -218,35 +220,34 @@ comparing the *observed* frequency to the *expected* frequency under the null hy
 
 
 ```{r}
+library(stringr)
+library(rvest)
 
 read_movie_html <- function(input_text) {
-
   input_text_formated <- str_replace_all(input_text, " ", "_")
 
   url <- paste0("https://en.wikipedia.org/wiki/", input_text_formated)
 
-  intro <- tryCatch({
+  intro <- tryCatch(
+    {
+      page <- read_html(url)
 
-    page <- read_html(url)
+      temp_var <- page %>%
+        html_nodes("p") %>%
+        .[2] %>%
+        html_text(trim = TRUE)
 
-    temp_var <- page %>% html_nodes("p") %>% .[2] %>% html_text(trim = TRUE)
+      temp_var <- str_squish(temp_var)
 
-    temp_var <- str_squish(temp_var)
-
-    temp_var
-
-  }, error = function(e) {
-
-    return(NULL)
-
-  })
+      temp_var
+    },
+    error = function(e) {
+      return(NULL)
+    }
+  )
 
   return(temp_var)
-
 }
-
-
-
 ```
 
 
@@ -330,9 +331,7 @@ What is the smallest $n$ (number of individuals) such that the expectation $E_{n
 text
 
 ```{r}
-
 # code
-
 ```
 
 
@@ -342,9 +341,7 @@ text
 
 
 ```{r}
-
 # code
-
 ```
 
 
@@ -352,9 +349,7 @@ text
 text
 
 ```{r}
-
 # code
-
 ```
 
 text
