@@ -228,7 +228,7 @@ read_movie_html <- function(input_text) {
 
   url <- paste0("https://en.wikipedia.org/wiki/", input_text_formated)
 
-  intro <- tryCatch(
+  tryCatch(
     {
       page <- read_html(url)
 
@@ -238,8 +238,6 @@ read_movie_html <- function(input_text) {
         html_text(trim = TRUE)
 
       temp_var <- str_squish(temp_var)
-
-      temp_var
     },
     error = function(e) {
       return(NULL)
