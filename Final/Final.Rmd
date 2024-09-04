@@ -1,64 +1,43 @@
 ---
-
 title: '52414: Home Exam Questions'
-
-output:
-
-  html_document: default
-
-  pdf_document: default
-
+output: 
+  html_document: 
+    toc: true 
+    toc_depth: 5 
+    toc_float: true
+pdf_document: default
 date: "August 25th, 2024"
-
 ---
 
+# Q0.Submission Instructions
 
+(Please read carefully)
 
-### Q0.Submission Instructions (Please read carefully)   
-
-
-
-The exam will be submitted **individually** by uploading the solved exam `Rmd` and `html` files to the course `moodle`. 
+The exam will be submitted **individually** by uploading the solved exam `Rmd` and `html` files to the course `moodle`.
 
 Please name your files as `52414-HomeExam_ID.Rmd` and `52414-HomeExam_ID.html` where `ID` is replaced by your ID number (e.g. `52414-HomeExam_1234.Rmd`. Do **not** write your name in the file name or in the exam itself).
 
-
-
-
-
-**Grading:** There are $2$ questions with overall $10$ sub-questions. They vary in difficulty and length, and the points for each sub-question are indicated at its beginning. There are in total $100$ points + $4$ bonus points. 
-
-
+**Grading:** There are $2$ questions with overall $10$ sub-questions. They vary in difficulty and length, and the points for each sub-question are indicated at its beginning. There are in total $100$ points + $4$ bonus points.
 
 The exam will be available from August 25th on 9:00. The last submission time is at August 28th at 9:00, except for cases that were given approval in advance. <br>
 
-You may use all course materials, the web and other written materials and R libraries. 
+You may use all course materials, the web and other written materials and R libraries.
 
-You are NOT allowed to discuss any of the exam questions/materials with other students. 
-
-
-
-
+You are NOT allowed to discuss any of the exam questions/materials with other students.
 
 **Analysis and Presentation of Results:**
-
-
 
 Write your answers and explanations in the text of the `Rmd` file (*not* in the `code` blocks). <br>
 
 The text of your answers should be next to the relevant code, plots and tables and refer to them, and not at a separate place at the end. <br>
 
-Explain every step of your analysis. When in doubt, a more detailed explanation is better than omitting explanations. 
+Explain every step of your analysis. When in doubt, a more detailed explanation is better than omitting explanations.
 
+Give informative titles, axis names and names for each curve/bar in your graphs.
 
-
-Give informative titles, axis names and names for each curve/bar in your graphs. 
-
-Change graph limits if needed. If you do so, please include the outlier points you have removed in a separate table.  <br>
+Change graph limits if needed. If you do so, please include the outlier points you have removed in a separate table. <br>
 
 Add informative comments explaining your code <br>
-
-
 
 Whenever possible, use **objective** and **specific** terms and quantities learned in class, and avoid **subjective** and **general** non-quantified statements. For example: <br>
 
@@ -68,291 +47,1310 @@ Whenever possible, use **objective** and **specific** terms and quantities learn
 
 `Good:` "The median is $4.7$. We detected five outliers with distance $>3$ standard deviations from the median". <br>
 
-`Bad:` "The five points on the sides seem far from the middle". 
-
-
+`Bad:` "The five points on the sides seem far from the middle".
 
 Sometimes `Tables` are the best way to present your results (e.g. when asked for a list of items). Exclude irrelevant
 
 rows/columns. Display clearly items' names in your `Tables`.
 
+Show numbers in plots/tables using standard digits and not scientific display.
 
-
-Show numbers in plots/tables using standard digits and not scientific display. 
-
-That is: 90,000,000 or 90M and not 9e+06.  
+That is: 90,000,000 or 90M and not 9e+06.
 
 Round numbers to at most 3 digits after the dot - that is, 9.456 and not 9.45581451044
 
-
-
-Some questions may require data wrangling and manipulation which you need to 
+Some questions may require data wrangling and manipulation which you need to
 
 decide on. The instructions may not specify precisely the exact plot you should use
 
-(for example: `show the distribution of ...`). In such cases, you should decide what and how to show the results. 
+(for example: `show the distribution of ...`). In such cases, you should decide what and how to show the results.
 
-
-
-When analyzing real data, use your best judgment if you encounter missing values, negative values, NaNs, errors in the data etc. (e.g. excluding them, zeroing negative values..) and mention what you have done in your analysis in such cases. 
-
-
+When analyzing real data, use your best judgment if you encounter missing values, negative values, NaNs, errors in the data etc. (e.g. excluding them, zeroing negative values..) and mention what you have done in your analysis in such cases.
 
 Required libraries are called in the `Rmd` file. Install any library missing from your `R` environment.<br>
 
-Any additional library you want to add must be approved by the course staff. If the approval is given add them at the **start** of the `Rmd` file, right below the existing libraries, and explain what libraries you've added, and what were they used for. 
-
-
+Any additional library you want to add must be approved by the course staff. If the approval is given add them at the **start** of the `Rmd` file, right below the existing libraries, and explain what libraries you've added, and what were they used for.
 
 This is an `.Rmd` file. Copy it with your mouse to create and `Rmd` file, and edit the file to include your questions.
 
-
-
 Good luck!
 
+## Package Installation & management
 
-
-
-
-
-
-```{r, cache=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Package Installation & management, warning = FALSE, message = FALSE, echo = FALSE}
 # List of packages
-packages <- c(
+packages_by_course_staff <- c(
   "wikiTools", "httr", "jsonlite", "data.table", "readr", "tidyr",
   "pbapply", "dplyr", "ggplot2", "patchwork", "stringr", "pracma", "reshape2"
-) # nolint
+)
+packages_by_me <- c(
+  "stopwords",
+  "tm",
+  "R.utils",
+  "rvest",
+  "gridExtra"
+)
 
-# Function to check and install packages
-install_if_missing <- function(pkg) {
-  if (!require(pkg, character.only = TRUE)) {
-    install.packages(pkg, dependencies = TRUE)
+
+packages <- union(packages_by_course_staff, packages_by_me)
+install_and_load_packages <- function(packages) {
+  # Check for missing packages and install them
+  missing_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
+
+  if (length(missing_packages)) {
+    install.packages(missing_packages)
   }
-  library(pkg, character.only = TRUE)
+
+  # Load all the packages
+  for (package in packages) {
+    library(package, character.only = TRUE)
+  }
 }
 
 # Apply the function to each package
-invisible(lapply(packages, install_if_missing))
+invisible(lapply(packages, install_and_load_packages))
 ```
 
+#Solutions:
 
+## Q1. Movies Datasets Analysis
 
+In this question we examine movie data using the free IMDB dataset. See [here](https://developer.imdb.com/non-commercial-datasets/) for the data documentation, and [here](https://datasets.imdbws.com/) a link for downloading the data files.
 
-
-<br/><br/>
-
-
-
-
-
-## Q1.  Movies Datasets Analysis
-
-
-
-In this question we examine movie data using the free IMDB dataset. See  [here](https://developer.imdb.com/non-commercial-datasets/) for the data documentation, and [here](https://datasets.imdbws.com/) a link for downloading the data files. 
-
-We will use the files `name.basics.tsv`, `title.basics.tsv` and `title.ratings.tsv`. Look 
+We will use the files `name.basics.tsv`, `title.basics.tsv` and `title.ratings.tsv`. Look
 
 at the files and read the questions to decide which data files are needed for each question.
 
-In addition, download the file `additional_files.zip` from the `moodle`, which contains additional data files used in the test. 
+In addition, download the file `additional_files.zip` from the `moodle`, which contains additional data files used in the test.
+
+### (a) (7 pt)
+
+Load the needed data for all questions, show the first five rows of each of the three datasets, and briefly explain what you see. Then, find out how many movies are in the data, and identify the newest and oldest movies by `StartYear`. (If there is more than one in each category, display the longest one). <br>
+
+**Remark:** To load large tab-delimited data files, use the `fread` command
+
+#### Code
+
+```{r Q1 a, warning = FALSE, fig.width=12, fig.height=8}
+# Load necessary libraries
+
+# Define file paths and URLs
+data_folder <- "data"
+files <- c("name.basics.tsv", "title.basics.tsv", "title.ratings.tsv")
+urls <- c(
+  "https://datasets.imdbws.com/name.basics.tsv.gz",
+  "https://datasets.imdbws.com/title.basics.tsv.gz",
+  "https://datasets.imdbws.com/title.ratings.tsv.gz"
+)
+
+# Create data folder if it doesn't exist
+if (!dir.exists(data_folder)) {
+  dir.create(data_folder)
+}
+
+# Download files if they don't exist
+for (i in seq_along(files)) {
+  file_path <- file.path(data_folder, files[i])
+  if (!file.exists(file_path)) {
+    download.file(urls[i], paste0(file_path, ".gz"), timeout = 300)
+    gunzip(paste0(file_path, ".gz"), file_path)
+  }
+}
+
+# Load data
+name_basics <- fread(file.path(data_folder, "name.basics.tsv"), quote = "")
+title_basics <- fread(file.path(data_folder, "title.basics.tsv"), quote = "")
+title_ratings <- fread(file.path(data_folder, "title.ratings.tsv"), quote = "")
+# Show first five rows of each dataset
+head(name_basics, 5)
+head(title_basics, 5)
+head(title_ratings, 5)
+
+# Count the number of movies
+num_movies <- nrow(title_basics)
+cat("Number of movies:", num_movies, "\n")
+
+# Identify the newest and oldest movies by startYear
+title_basics[, startYear := as.numeric(startYear)]
+newest_movie <- title_basics[order(-startYear, -runtimeMinutes)][1]
+oldest_movie <- title_basics[order(startYear, -runtimeMinutes)][1]
+
+cat(paste0("Newest movie: ", newest_movie$primaryTitle, " (", newest_movie$startYear, ")\n"))
+cat(paste0("Oldest movie: ", oldest_movie$primaryTitle, " (", oldest_movie$startYear, ")\n"))
+```
+
+#### Explanation
+
+The dataset provides an overview of early short films from the 1890s, highlighting notable titles such as "Carmencita," "Le clown et ses chiens," "Pauvre Pierrot," "Un bon bock," and "Blacksmith Scene." Each film is categorized by type, predominantly short films, and spans diverse genres including documentary, animation, comedy, and romance. For instance, "Carmencita," released in 1894, is a one-minute documentary with a rating of 5.7, while "Blacksmith Scene," from 1893, is a one-minute comedy with the highest number of votes at 2813 and an average rating of 6.2. These films exhibit varying runtimes from just one minute to twelve minutes, reflecting the early experimentation in filmmaking and audience engagement of that era.
+
+### (b) (8 pt)
+
+Filter the movies data file to include only movies released between 1970 and 2020 (inclusive). For each year, keep only the `movies` that have ratings and received at least `5` votes. Show the normalized distribution of the number of movies (i.e. the relative frequency) in each year before and after filtering side by side. Are the distributions similar?
+
+#### Code
+
+```{r Q1 b, warning = FALSE, fig.width=12, fig.height=8}
+# Filter movies released between 1970 and 2020
+
+filtered_movies <- title_basics[startYear >= 1970 & startYear <= 2020]
+
+# Merge with ratings data
+movies_with_ratings <- merge(filtered_movies, title_ratings, by = "tconst")
+
+# Keep only movies with at least 5 votes
+movies_with_ratings <- movies_with_ratings[numVotes >= 5]
+
+# Calculate the relative frequency of movies for each year before filtering
+total_movies_per_year <- filtered_movies[, .N, by = startYear]
+total_movies_per_year[, relative_frequency := N / sum(N)]
+
+# Calculate the relative frequency of movies for each year after filtering
+filtered_movies_per_year <- movies_with_ratings[, .N, by = startYear]
+filtered_movies_per_year[, relative_frequency := N / sum(N)]
+
+# Calculate maximum points for the plots
+max_before_x <- total_movies_per_year$startYear[which.max(total_movies_per_year$relative_frequency)]
+max_before_y <- max(total_movies_per_year$relative_frequency)
+
+max_after_x <- filtered_movies_per_year$startYear[which.max(filtered_movies_per_year$relative_frequency)]
+max_after_y <- max(filtered_movies_per_year$relative_frequency)
 
 
+# Plot for before filtering
+p1 <- ggplot(total_movies_per_year, aes(x = startYear, y = relative_frequency)) +
+  geom_area(fill = "blue", alpha = 0.5) + # Wave with semi-transparent blue color
+  geom_line(color = "blue", linewidth = 1.2) + # Line for the wave's outline
+  ggplot2::annotate("segment",
+    x = max_before_x, xend = max_before_x, y = 0, yend = max_before_y,
+    linetype = "dashed", color = "blue", size = 0.5
+  ) + # Dashed line for max value
+  ggplot2::annotate("segment",
+    x = 1970, xend = max_before_x, y = max_before_y, yend = max_before_y,
+    linetype = "dashed", color = "blue", size = 0.5
+  ) + # Horizontal dashed line
+  ggplot2::annotate("text", x = max_before_x, y = -0.005, label = round(max_before_x, 3), color = "blue", size = 3, hjust = 0.5) + # Rounded x label
+  ggplot2::annotate("text", x = 1965, y = max_before_y, label = round(max_before_y, 3), color = "blue", size = 3, vjust = -0.5) + # Rounded y label
+  ggtitle("Relative Frequency of Movies (Before Filtering)") +
+  theme_minimal() + # Modern clean theme
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12)
+  ) +
+  xlab("Year") +
+  ylab("Relative Frequency")
+
+# Plot for after filtering
+p2 <- ggplot(filtered_movies_per_year, aes(x = startYear, y = relative_frequency)) +
+  geom_area(fill = "red", alpha = 0.5) + # Wave with semi-transparent red color
+  geom_line(color = "red", linewidth = 1.2) + # Line for the wave's outline
+  ggplot2::annotate("segment",
+    x = max_after_x, xend = max_after_x, y = 0, yend = max_after_y,
+    linetype = "dashed", color = "red", size = 0.5
+  ) + # Dashed line for max value
+  ggplot2::annotate("segment",
+    x = 1970, xend = max_after_x, y = max_after_y, yend = max_after_y,
+    linetype = "dashed", color = "red", size = 0.5
+  ) + # Horizontal dashed line
+  ggplot2::annotate("text", x = max_after_x, y = -0.005, label = round(max_after_x, 3), color = "red", size = 3, hjust = 0.5) + # Rounded x label
+  ggplot2::annotate("text", x = 1965, y = max_after_y, label = round(max_after_y, 3), color = "red", size = 3, vjust = -0.5) + # Rounded y label
+  ggtitle("Relative Frequency of Movies (After Filtering)") +
+  theme_minimal() + # Modern clean theme
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12)
+  ) +
+  xlab("Year") +
+  ylab("Relative Frequency")
+
+# Display the plots side by side
+grid.arrange(p1, p2, ncol = 2)
+```
+
+#### Explanation
+
+From the image, we can compare the relative frequency of movies before and after filtering. Here's a breakdown of the similarities and differences between the two distributions:
+
+Before Filtering (Left Chart): The distribution rises gradually until the late 1990s, after which there is a sharp increase in the number of movies released per year. The highest frequency occurs around `r max_before_x`, with a relative frequency of about `r max_before_y`. - **Trend**: The increase in movies is consistent but accelerates sharply toward the end of the timeframe, especially from the 1990s onward.
+
+After Filtering (Right Chart): - **Shape**: The overall shape of the distribution is quite similar to the one before filtering, but the relative frequency is slightly lower. - **Peak**: The highest point occurs around `r max_after_x`, with a relative frequency of `r max_after_y`, which is slightly lower than the unfiltered peak. - **Trend**: The trend remains similar, with a sharp rise in the number of movies after the 1990s. The main difference is that some of the movies, likely those without ratings or fewer than 5 votes, have been excluded, causing a slight dip in the relative frequency.
+
+Similarities: - Both distributions follow the same general upward trend over time, with a significant increase in movie releases starting in the 1990s and peaking in the late 2010s. - The shapes of the curves are very similar, suggesting that filtering did not drastically alter the overall distribution pattern.
+
+Differences: - The filtered dataset has a lower peak (`r max_after_y`) compared to the unfiltered dataset (`r max_before_y`), reflecting the exclusion of movies without ratings or sufficient votes. - After filtering, the relative frequency of movies is consistently lower across the years, but the overall trend remains the same.
+
+Conclusion: The distributions before and after filtering are similar in shape and overall trend, indicating that while the number of movies decreased slightly due to the filtering criteria (ratings and at least 5 votes), the general pattern of movie releases over time remains consistent. The filtering mainly removes less-rated or less-popular movies, but it doesn't significantly change the general growth trend in movie production over the decades.
+
+### (c) (8 pt)
+
+Show the average movie runtime over the years for: all movies, the two genres with the most movies, and additionally for the genres `Horror`,`Action,Crime,Drama` (all after filtering of 1.b). Describe the results.
+
+#### Code
+
+```{r Q1 c, warning = FALSE, fig.width=12, fig.height=8}
+# Filtered data from part (b)
+filtered_movies <- movies_with_ratings
+
+# Convert runtimeMinutes to numeric
+filtered_movies[, runtimeMinutes := suppressWarnings(as.numeric(runtimeMinutes))]
 
 
+# Identify the two genres with the most movies
+genre_counts <- filtered_movies[, .N, by = genres]
+genre_counts <- genre_counts[order(-N)]
+top_genres <- unlist(strsplit(genre_counts$genres[1:2], ","))
 
-(a)  (7 pt) Load the needed data for all questions, show the first five rows of each of the three datasets, and briefly explain what you see. Then, find out how many movies are in the data, and identify the newest and oldest movies by `StartYear`. (If there is more than one in each category, display the longest one).  <br>
+# Function to calculate average runtime by year and genre
+calculate_avg_runtime <- function(data, genre_filter = NULL) {
+  if (!is.null(genre_filter)) {
+    data <- data[grepl(genre_filter, genres)]
+  }
+  avg_runtime <- data[, .(avg_runtime = mean(runtimeMinutes, na.rm = TRUE)), by = startYear]
+  avg_runtime[, genre := ifelse(is.null(genre_filter), "All", genre_filter)]
+  return(avg_runtime)
+}
 
-**Remark:**  To load large tab-delimited data files, use the `fread` command  
+# Calculate average runtime for all movies
+avg_runtime_all <- calculate_avg_runtime(filtered_movies)
 
+# Calculate average runtime for the top two genres
+avg_runtime_top_genre1 <- calculate_avg_runtime(filtered_movies, top_genres[1])
+avg_runtime_top_genre2 <- calculate_avg_runtime(filtered_movies, top_genres[2])
 
+# Calculate average runtime for specific genres
+avg_runtime_horror <- calculate_avg_runtime(filtered_movies, "Horror")
+avg_runtime_action <- calculate_avg_runtime(filtered_movies, "Action")
+avg_runtime_crime <- calculate_avg_runtime(filtered_movies, "Crime")
+avg_runtime_drama <- calculate_avg_runtime(filtered_movies, "Drama")
 
-(b) (8 pt)  Filter the movies data file to include only movies released between 1970 and 2020 (inclusive). For each year, keep only the `movies` that have ratings and received at least `5` votes. Show the normalized distribution  of the number of movies (i.e. the relative frequency) in each year before and after filtering side by side. Are the distributions similar? 
+# Combine all data
+avg_runtime_combined <- rbind(
+  avg_runtime_all, avg_runtime_top_genre1, avg_runtime_top_genre2,
+  avg_runtime_horror, avg_runtime_action, avg_runtime_crime, avg_runtime_drama
+)
 
+# Plot the average runtime over the years with wave-like, semi-transparent areas
+ggplot(avg_runtime_combined, aes(x = startYear, y = avg_runtime, fill = genre, color = genre)) +
+  geom_area(alpha = 0.1, position = "identity") + # Semi-transparent areas
+  geom_line(size = 0.7) + # Line on top for clarity
+  ggtitle("Average Movie Runtime Over the Years") +
+  xlab("Year") +
+  ylab("Average Runtime (minutes)") +
+  theme_minimal() + # Clean modern theme
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12)
+  )
+```
 
+#### Explanation
 
-(c) (8 pt)  Show the average movie runtime over the years for: all movies, the two genres with the most movies, and additionally for the genres `Horror`,`Action,Crime,Drama` (all after filtering of 1.b). Describe the results. 
+The graph shows the average movie runtime from 1970 to 2020, broken down by several genres, including the two most common genres, as well as **Horror**, **Action**, **Crime**, and **Drama**.
 
+Key Observations:
 
+1.  **Overall Trend**:
+    -   There is a gradual decline in average movie runtimes across all genres, especially after 2000. The decline is most noticeable around the early 2000s.
+    -   **All movies** follow a similar trend, with runtimes starting at around 75-80 minutes in the 1970s and gradually dropping to around 50-60 minutes by 2020.
+2.  **Action Movies**:
+    -   Action movies typically have shorter runtimes compared to other genres.
+    -   At 1985, there is a noticeable dip, with the average runtime stabilizing around 50 minutes in the 2010s.
+3.  **Horror Movies**:
+    -   Horror movies started with relatively less runtimes in 1970 but gained popolurity up to 1975, then they exhibit a significant drop in runtime over the decades.
+    -   By 2020, the runtime of horror films has converged with that of action and comedy, hovering around 50 minutes.
+4.  **Crime and Drama**:
+    -   Crime movies have shown some fluctuation but generally maintain a higher average runtime compared to other genres, often exceeding 60 minutes.
+    -   Drama, like crime, tends to have longer runtimes, particularly in the earlier years. However, a decline is evident by the 2000s.
+5.  **Two Most Popular Genres**:
+    -   The **Comedy** genre (one of the two most popular genres) has maintained a more consistent runtime over the years, with some dips but staying around 40-60 minutes.
+    -   **Drama** or **Crime** likely represents the second most popular genre, showing longer runtimes in general but following the overall downward trend.
 
+Summary: Overall, average runtimes have decreased across most genres, particularly after the 1990s. Genres like **Comedy** and **Action** consistently exhibit shorter runtimes, while **Crime** and **Drama** traditionally have longer runtimes but also show a decrease toward the present day. This trend reflects a broader shift in filmmaking, possibly due to changes in audience preferences, production styles, or the rise of shorter media formats.
 
+### (d) (8 pt)
 
-(d) (8 pt) Load the `sequal_data.csv` data file. This file was automatically generated to contain movies and their sequels. 
+Load the `sequal_data.csv` data file. This file was automatically generated to contain movies and their sequels.
 
-- The file has some errors, i.e. incorrect assignment of movies and their sequels. Identify and report at least two such errors and fix them manually. <br>
+-   The file has some errors, i.e. incorrect assignment of movies and their sequels. Identify and report at least two such errors and fix them manually. <br>
 
-- Next, show the first five rows of the data. Find and display the movie series with the most sequels. 
+-   Next, show the first five rows of the data. Find and display the movie series with the most sequels.
 
-- Compute and display the distribution of the differences in time between the first movie and the last movie in the various series. Explain the results.
+-   Compute and display the distribution of the differences in time between the first movie and the last movie in the various series. Explain the results.
 
+#### Code
 
+```{r Q1 d, warning = FALSE, fig.width=12, fig.height=8}
+# Load the data
+sequel_data <- fread("data/additional_files/sequal_data.csv")
 
-(e) (8 pt)  There is a common belief that sequels are worse than original movies, often discussed in articles like those on [Stuyvesant's site](https://stuyspec.com/ae/film/the-problem-with-sequels) and [The Odyssey](https://www.theodysseyonline.com/7-reasons-sequels-suck). This is thought to be related to the "Sophomore Slump," where the second attempt fails to match the success of the first. We want to check if second movies really are worse. <br>
+# Convert Year and sequel_num to numeric for proper comparison
+sequel_data[, Year := as.numeric(Year)]
+sequel_data[, sequel_num := as.numeric(sequel_num)]
 
-Plot in a graph the distribution of IMDB ratings for first movies and second movies in the sequel data (ignore third and later movies in each series), and all movies from IMDB data (after the filtering in 1.b.). Do you see differences between the distributions? do they support the hypothesis that sequels are worse? 
+# Identify errors where the release year is not in ascending order for a sequel group
+errors <- sequel_data[, .SD[Year < shift(Year, type = "lag") & sequel_num > shift(sequel_num, type = "lag")], by = sequel_group]
 
+# Print the errors before fixing them
+cat("Errors before fixing:\n")
+print(errors)
 
+# Fix errors by sorting and reassigning sequel_num within each sequel group
+sequel_data <- sequel_data[order(sequel_group, Year)]
+sequel_data[, sequel_num := seq_len(.N), by = sequel_group]
 
-(f) (14 pt)  Load the `tconst_values_for_2d.csv` file and the relevant IMDB file, then merge them based on the `tconst` column. Next, loop on all movies and for each `primaryTitle` from the merged dataset extract the wikipedia `html` file of the movie using the `read_movie_html` function given below. 
+# Identify and print the errors after fixing (should be empty if the fix was successful)
+errors_fixed <- sequel_data[, .SD[Year < shift(Year, type = "lag") & sequel_num > shift(sequel_num, type = "lag")], by = sequel_group]
 
-Next, extract the introduction of each movie (the first paragraph appearing after the title, see for example marked in red for the movie `The Music Lovers`). <br>
+cat("\nErrors after fixing:\n")
+print(errors_fixed)
+
+# Show the first five rows of the data
+cat("\nFirst five rows of the data:\n")
+print(head(sequel_data, 5))
+
+# Find and display the movie series with the most sequels
+series_counts <- sequel_data[, .N, by = sequel_group]
+most_sequels_series <- series_counts[order(-N)][1]
+most_sequels_title <- sequel_data$Title[sequel_data$sequel_group == most_sequels_series$sequel_group][1]
+most_sequels_number <- length(sequel_data$Title[sequel_data$sequel_group == most_sequels_series$sequel_group]) - 1
+
+cat(paste0("\nThe movie series with the most sequels is: ", most_sequels_title, " with ", most_sequels_number, " sequels.\n"))
+
+# Compute the distribution of the differences in time between the first movie and the last movie in the various series
+time_diff <- sequel_data[, .(time_diff = max(Year) - min(Year)), by = sequel_group]
+
+# Calculate the density and find the maximum x and y values
+time_diff_density <- density(time_diff$time_diff)
+max_density_x <- time_diff_density$x[which.max(time_diff_density$y)]
+max_density_y <- max(time_diff_density$y)
+
+# Plot the density with the modifications
+ggplot(time_diff, aes(x = time_diff)) +
+  geom_density(fill = "blue", alpha = 0.3) + # Smooth density with semi-transparent blue fill
+  geom_line(stat = "density", color = "blue", size = 1.2) + # Line for the wave's outline
+  geom_segment(aes(x = max_density_x, y = 0, xend = max_density_x, yend = max_density_y),
+    linetype = "dashed", color = "blue", size = 0.5
+  ) + # Dashed line for max value
+  geom_segment(aes(x = 0, y = max_density_y, xend = max_density_x, yend = max_density_y),
+    linetype = "dashed", color = "blue", size = 0.5
+  ) + # Horizontal dashed line
+  ggplot2::annotate("text", x = max_density_x, y = -0.01, label = round(max_density_x, 3), color = "blue", size = 3, hjust = 0.5) + # Rounded x label
+  ggplot2::annotate("text", x = -2, y = max_density_y, label = round(max_density_y, 3), color = "blue", size = 3, vjust = -0.5) + # Rounded y label
+  ggtitle("Distribution of Time Differences Between First and Last Movie in Series") +
+  xlab("Time Difference (years)") +
+  ylab("Density") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12)
+  ) +
+  coord_cartesian(clip = "off") + # Prevent text clipping
+  theme(plot.margin = margin(10, 10, 10, 50)) # Add more space for labels
+```
+#### Explanation
+Density Plot Analysis:
+The distribution shows a pronounced peak at around 3.28 years, with a density of 0.105. This peak suggests that the most common gap between the first and last movies in a series is slightly over 3 years. This timeframe is typical for sequels in modern cinema, where sequels are often planned to capitalize on the success of their predecessors within a short window.
+The tail of the distribution extending towards 60 years indicates that some movie series have very long gaps between their first and last installments. These are exceptional cases where either the franchise was revived after many years or sequels were produced sporadically over decades.
+
+### (e) (8 pt)
+
+There is a common belief that sequels are worse than original movies, often discussed in articles like those on [Stuyvesant's site](https://stuyspec.com/ae/film/the-problem-with-sequels) and [The Odyssey](https://www.theodysseyonline.com/7-reasons-sequels-suck). This is thought to be related to the "Sophomore Slump," where the second attempt fails to match the success of the first. We want to check if second movies really are worse.
+
+Plot in a graph the distribution of IMDB ratings for first movies and second movies in the sequel data (ignore third and later movies in each series), and all movies from IMDB data (after the filtering in 1.b.). Do you see differences between the distributions? do they support the hypothesis that sequels are worse?
+
+#### Code
+
+```{r Q1 e, warning = FALSE, fig.width=12, fig.height=8}
+# Filter to keep only first and second movies in the sequel group
+first_second_movies <- sequel_data[sequel_num %in% 1:2]
+
+# Separate data for first and second movies, removing NA values
+first_movies <- first_second_movies[sequel_num == 1 & !is.na(`IMDb Rating`), .(Title, IMDb_Rating = `IMDb Rating`)]
+second_movies <- first_second_movies[sequel_num == 2 & !is.na(`IMDb Rating`), .(Title, IMDb_Rating = `IMDb Rating`)]
+
+# Use all movies in the dataset for "all movies", removing NA values
+all_movies <- sequel_data[!is.na(`IMDb Rating`), .(Title, IMDb_Rating = `IMDb Rating`)]
+
+# Calculate the densities for each group
+first_movie_density <- density(first_movies$IMDb_Rating)
+second_movie_density <- density(second_movies$IMDb_Rating)
+all_movie_density <- density(all_movies$IMDb_Rating)
+
+# Find the x and y positions where the maximum density occurs for each group
+max_first_movie_x <- first_movie_density$x[which.max(first_movie_density$y)]
+max_first_movie_y <- max(first_movie_density$y)
+
+max_second_movie_x <- second_movie_density$x[which.max(second_movie_density$y)]
+max_second_movie_y <- max(second_movie_density$y)
+
+max_all_movie_x <- all_movie_density$x[which.max(all_movie_density$y)]
+max_all_movie_y <- max(all_movie_density$y)
+
+# Create a combined data frame to handle colors correctly with aes()
+first_movies$group <- "First Movie"
+second_movies$group <- "Second Movie"
+all_movies$group <- "All Movies"
+
+# Combine all groups into one data frame for easier mapping
+combined_data <- rbind(first_movies, second_movies, all_movies)
+
+# Plot the distribution of ratings for first movies, second movies, and all movies
+ggplot(combined_data, aes(x = IMDb_Rating, fill = group)) +
+  # Density plots with matching fill colors and same line colors
+  geom_density(alpha = 0.2, aes(color = group), size = 0.8) +
+
+  # First movies max lines
+  geom_segment(aes(x = max_first_movie_x, y = 0, xend = max_first_movie_x, yend = max_first_movie_y), linetype = "dashed", color = "red", size = 0.5) +
+  geom_segment(aes(x = 0, y = max_first_movie_y, xend = max_first_movie_x, yend = max_first_movie_y), linetype = "dashed", color = "red", size = 0.5) +
+
+  # Second movies max lines
+  geom_segment(aes(x = max_second_movie_x, y = 0, xend = max_second_movie_x, yend = max_second_movie_y), linetype = "dashed", color = "green", size = 0.5) +
+  geom_segment(aes(x = 0, y = max_second_movie_y, xend = max_second_movie_x, yend = max_second_movie_y), linetype = "dashed", color = "green", size = 0.5) +
+
+  # All movies max lines
+  geom_segment(aes(x = max_all_movie_x, y = 0, xend = max_all_movie_x, yend = max_all_movie_y), linetype = "dashed", color = "blue", size = 0.5) +
+  geom_segment(aes(x = 0, y = max_all_movie_y, xend = max_all_movie_x, yend = max_all_movie_y), linetype = "dashed", color = "blue", size = 0.5) +
+
+  # Add x and y intercept labels for each group
+  ggplot2::annotate("text", x = max_first_movie_x, y = -0.02, label = round(max_first_movie_x, 2), color = "red", size = 3, hjust = 1.2) +
+  ggplot2::annotate("text", x = -0.2, y = max_first_movie_y, label = round(max_first_movie_y, 2), color = "red", size = 3, vjust = 1.2) +
+  ggplot2::annotate("text", x = max_second_movie_x, y = -0.02, label = round(max_second_movie_x, 2), color = "green", size = 3, hjust = 1.2) +
+  ggplot2::annotate("text", x = -0.2, y = max_second_movie_y, label = round(max_second_movie_y, 2), color = "green", size = 3, vjust = 1.2) +
+  ggplot2::annotate("text", x = max_all_movie_x, y = -0.02, label = round(max_all_movie_x, 2), color = "blue", size = 3, hjust = 1.2) +
+  ggplot2::annotate("text", x = -0.2, y = max_all_movie_y, label = round(max_all_movie_y, 2), color = "blue", size = 3, vjust = 1.2) +
+
+  # Titles and labels
+  ggtitle("Ratings Comparison") +
+  xlab("IMDb Rating") +
+  ylab("Density") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12)
+  ) +
+
+  # Color fill and legend
+  scale_fill_manual(
+    values = c("First Movie" = "red", "Second Movie" = "green", "All Movies" = "blue"),
+    name = "Movie Type"
+  ) +
+  scale_color_manual(
+    values = c("First Movie" = "red", "Second Movie" = "green", "All Movies" = "blue"),
+    guide = "none" # Remove the color legend to avoid duplication
+  )
+# Display the maximum values before the plot
+cat("Max values:\nFirst Movie: IMDb Rating = ", round(max_first_movie_x, 2), ", Density = ", round(max_first_movie_y, 2), "\nSecond Movie: IMDb Rating = ", round(max_second_movie_x, 2), ", Density = ", round(max_second_movie_y, 2), "\nAll Movies: IMDb Rating = ", round(max_all_movie_x, 2), ", Density = ", round(max_all_movie_y, 2), "\n")
+```
+#### Explanation
+Key Observations:
+First Movies have a peak IMDb rating at 7 with the highest density of 0.48, suggesting a concentration of higher ratings.
+Second Movies show a peak IMDb rating at around 6.39 with a density of 0.36, significantly lower than first movies, indicating both a lower average rating and a lesser concentration of ratings around the peak.
+All Movies peak at an IMDb rating of 6.52 with a density of 0.35, which encompasses a broader range of movie ratings compared to the first and second movies alone.
+Conclusion on the Hypothesis:
+The data supports the hypothesis that sequels are generally worse than original movies. The peak ratings and densities show a clear drop from first to second movies:
+
+Density Drop: From 0.48 in first movies to 0.36 in second movies.
+Rating Drop: From a peak rating of 7 in first movies to 6.39 in second movies.
+These numbers substantiate the notion that sequels, on average, fail to reach the quality and appeal of their predecessors, aligning with the concept of the "Sophomore Slump" in cinema. This trend emphasizes the challenge for filmmakers to maintain consistency and quality across movie sequels.
+
+### (f) (14 pt)
+Load the `tconst_values_for_2d.csv` file and the relevant IMDB file, then merge them based on the `tconst` column. Next, loop on all movies and for each `primaryTitle` from the merged dataset extract the wikipedia `html` file of the movie using the `read_movie_html` function given below.
+
+Next, extract the introduction of each movie (the first paragraph appearing after the title, see for example marked in red for the movie `The Music Lovers`).
 
 Clean the text by removing non-english letter symbols and common stop words. Identify the five most frequent words remaining after the cleaning process and explain what these words reveal about the data. <br>
 
 **Remark** - Running the code directly should take about 15 minutes, but it will be quicker with a more efficient approach. We recommend after running a `read_movie_html` to save the data in csv and then read it locally to save running time.
 
+#### Code
 
-
-(g) (14 pt) Compute a 26 x 26 table of the frequency of consecutive letter pairs in the English language from the text of all movie introductions you collected earlier in 1.g. That is, for example for the text `to be or not to be` the frequencies of the pairs will be: 
-
-`{to:2, be:2, or:1, no:1, ot:1}` and zero for all other letter pairs.
-
-When calculating the letter pairs distribution, use the text without stop words and ignore letter case.
-
- Present the table in a heatmap, and in addition report the top 5 pairs of letters along with their **relative** frequencies. <br>
-
-- Finally, we want to test the hypothesis that two consecutive letters are independent. Perform a chi-square test using the 26 X 26 table 
-
-comparing the *observed* frequency to the *expected* frequency under the null hypothesis of indepndence. Compute the test statistic, the degrees of freedom and the resulting p-value. Do you reject the null hypothesis? explain. 
-
-
-
-
-
-```{r}
-library(stringr)
-library(rvest)
-
+```{r Q1 f, warning = FALSE, fig.width=12, fig.height=8}
 read_movie_html <- function(input_text) {
   input_text_formated <- str_replace_all(input_text, " ", "_")
 
   url <- paste0("https://en.wikipedia.org/wiki/", input_text_formated)
 
-  tryCatch(
+  intro <- tryCatch(
     {
       page <- read_html(url)
 
-      temp_var <- page %>%
-        html_nodes("p") %>%
-        .[2] %>%
-        html_text(trim = TRUE)
+      temp_var <- str_squish(page %>% html_nodes("p") %>% .[2] %>% html_text(trim = TRUE))
 
-      temp_var <- str_squish(temp_var)
+      temp_var
     },
     error = function(e) {
       return(NULL)
     }
   )
 
-  return(temp_var)
+  return(intro)
+}
+
+# Load and merge datasets, suppressing column specification message
+tconst_data <- read_csv("data/additional_files/tconst_values_for_2d.csv", show_col_types = FALSE)
+# Convert runtimeMinutes to numeric, suppressing warnings for invalid conversions
+filtered_movies[, runtimeMinutes := suppressWarnings(as.numeric(runtimeMinutes))]
+imdb_data <- title_basics # Load relevant IMDB file
+
+# Merge on the tconst column
+merged_data <- merge(tconst_data, imdb_data, by = "tconst")
+
+# Loop through all primary titles and get the introduction paragraph
+
+# intro_paragraphs <-  read_csv("intro_paragraphs.csv", show_col_types = FALSE)
+intro_paragraphs <- sapply(merged_data$primaryTitle, function(title) {
+  read_movie_html(title)
+})
+
+# Create a data frame with primary titles and their respective introductions
+intro_df <- data.frame(primaryTitle = merged_data$primaryTitle, intro = intro_paragraphs, stringsAsFactors = FALSE)
+
+# Clean the text
+clean_text <- function(text) {
+  # Remove non-English symbols, punctuation, numbers, and convert to lower case
+  cleaned_text <- str_replace_all(text, "[^a-zA-Z\\s]", "")
+  cleaned_text <- tolower(cleaned_text)
+
+  # Remove stop words using stopwords package
+  stop_words <- stopwords("en") # Load common English stop words
+  cleaned_text <- strsplit(cleaned_text, "\\s+")[[1]] # Split into words
+  cleaned_text <- cleaned_text[!(cleaned_text %in% stop_words)] # Remove stop words
+
+  # Join the cleaned words back into a string
+  cleaned_text <- paste(cleaned_text, collapse = " ")
+
+  return(cleaned_text)
+}
+
+# Clean each introduction paragraph
+intro_df$cleaned_intro <- sapply(intro_df$intro, clean_text)
+
+# Find the five most frequent words
+# Split the cleaned intro into individual words
+all_words <- unlist(strsplit(intro_df$cleaned_intro, "\\s+"))
+
+# Create a frequency table of the words
+word_freq <- table(all_words)
+
+# Sort and get the top 5 most frequent words
+top_5_words <- sort(word_freq, decreasing = TRUE)[1:5]
+
+# Display the top 5 most frequent words and their counts
+top_5_words
+
+# Explain what the words reveal
+cat("The five most frequent words are:", names(top_5_words), "\n")
+```
+#### Exaplantion
+From the results:
+Most Frequent Words: The five most frequent words in the cleaned text are "film", "also", "directed", "may", and "written".
+"film" (958 occurrences): This is unsurprising as Wikipedia introductions likely reference the work as a film frequently.
+"also" (372 occurrences): Often used in descriptions to add information about the movie, such as influences, style, or additional roles by the creators.
+"directed" (287 occurrences): A key descriptor in film articles, highlighting the director, which is central information for any film.
+"may" (269 occurrences): This could be part of conditional phrases common in historical or speculative contexts within movie descriptions.
+"written" (209 occurrences): Indicates the scriptwriter or the author of the original work from which the film was adapted.
+What These Words Reveal About the Data:
+Focus on Film Creation: The prominence of words like "directed" and "written" underscores that the introductory sections of Wikipedia movie articles are heavily focused on the creation and production aspects of the films.
+Descriptive and Speculative Language: The use of "also" and "may" suggests that these introductions often provide additional contextual information or speculative details, which might relate to the production background, thematic elements, or interpretations of the film.
+Comprehensive Coverage: The frequency of these words indicates comprehensive coverage of each film's significant aspects, primarily focusing on who directed and wrote the film, suggesting a pattern in how films are generally discussed or introduced in an encyclopedic context.
+
+### (g) (14 pt)
+
+Compute a 26 x 26 table of the frequency of consecutive letter pairs in the English language from the text of all movie introductions you collected earlier in 1.g. That is, for example for the text `to be or not to be` the frequencies of the pairs will be:
+
+`{to:2, be:2, or:1, no:1, ot:1}` and zero for all other letter pairs.
+
+When calculating the letter pairs distribution, use the text without stop words and ignore letter case.
+
+Present the table in a heatmap, and in addition report the top 5 pairs of letters along with their **relative** frequencies.
+
+-   Finally, we want to test the hypothesis that two consecutive letters are independent. Perform a chi-square test using the 26 X 26 table
+
+comparing the *observed* frequency to the *expected* frequency under the null hypothesis of indepndence. Compute the test statistic, the degrees of freedom and the resulting p-value. Do you reject the null hypothesis? explain.
+
+#### Code
+
+```{r Q1 g, warning = FALSE, fig.width=12, fig.height=8}
+# Function to extract consecutive letter pairs from a cleaned text
+extract_letter_pairs <- function(text) {
+  text <- gsub("[^a-z]", "", text) # Remove non-letter characters
+  pairs <- sapply(1:(nchar(text) - 1), function(i) {
+    substr(text, i, i + 1) # Extract consecutive letters
+  })
+  return(pairs)
+}
+
+# Initialize a 26x26 matrix for the letter pairs (A-Z, A-Z)
+letter_pairs_table <- matrix(0, nrow = 26, ncol = 26, dimnames = list(letters, letters))
+
+# Loop over all cleaned introductions and extract letter pairs
+for (intro in intro_df$cleaned_intro) {
+  letter_pairs <- extract_letter_pairs(intro)
+
+  # Count the frequency of each pair and update the table
+  for (pair in letter_pairs) {
+    if (nchar(pair) == 2) {
+      first_letter <- substr(pair, 1, 1)
+      second_letter <- substr(pair, 2, 2)
+      letter_pairs_table[first_letter, second_letter] <- letter_pairs_table[first_letter, second_letter] + 1
+    }
+  }
+}
+
+# Step 2: Present the table as a heatmap
+# Convert the matrix to a format suitable for ggplot
+letter_pairs_df <- melt(letter_pairs_table)
+colnames(letter_pairs_df) <- c("First_Letter", "Second_Letter", "Frequency")
+
+# Create the heatmap
+ggplot(letter_pairs_df, aes(x = First_Letter, y = Second_Letter, fill = Frequency)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red") +
+  theme_minimal() +
+  ggtitle("Heatmap of Consecutive Letter Pairs Frequency") +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12)
+  ) +
+  xlab("First Letter") +
+  ylab("Second Letter")
+
+# Step 3: Report the top 5 letter pairs
+# Flatten the matrix to get the frequencies and sort
+letter_pairs_sorted <- letter_pairs_df
+top_5_pairs <- head(letter_pairs_sorted[order(-letter_pairs_sorted$Frequency), ], 5)
+
+# Calculate the total number of pairs
+total_pairs <- sum(letter_pairs_table)
+
+# Report the top 5 pairs with their relative frequencies
+top_5_pairs$Relative_Frequency <- top_5_pairs$Frequency / total_pairs
+print("Top 5 most frequent letter pairs with relative frequencies:")
+print(top_5_pairs)
+
+# Step 4: Perform a chi-square test
+# Calculate row and column totals
+row_totals <- rowSums(letter_pairs_table)
+col_totals <- colSums(letter_pairs_table)
+
+# Calculate expected frequencies under the independence assumption
+expected_table <- outer(row_totals, col_totals) / total_pairs
+
+# Perform the chi-square test
+chi_sq_test <- chisq.test(letter_pairs_table, p = expected_table / total_pairs)
+
+# Report the chi-square statistic, degrees of freedom, and p-value
+cat("Chi-Square Test Results:\nTest Statistic:", chi_sq_test$statistic, "\nDegrees of Freedom:", chi_sq_test$parameter, "\nP-Value:", chi_sq_test$p.value, "\n")
+
+# Step 5: Interpretation of the results
+if (chi_sq_test$p.value < 0.05) {
+  cat("We reject the null hypothesis: consecutive letters are not independent.\n")
+} else {
+  cat("We fail to reject the null hypothesis: there is no evidence that consecutive letters are dependent.\n")
 }
 ```
+#### Explanation
+Heatmap Analysis:
+The heatmap shows the frequency of consecutive letter pairs, with darker shades indicating higher frequencies. Notable high-frequency pairs such as ('e', 'r') and ('i', 'n') are evident. These pairs often form part of common English words found in movie descriptions.
+Top 5 Most Frequent Letter Pairs:
+('e', 'r'): 6486 occurrences (Relative Frequency: 0.02046)
+('i', 'n'): 5188 occurrences (Relative Frequency: 0.01636)
+('r', 'e'): 5099 occurrences (Relative Frequency: 0.01608)
+('a', 'n'): 4965 occurrences (Relative Frequency: 0.01566)
+('e', 's'): 4623 occurrences (Relative Frequency: 0.01458)
+These frequencies indicate a strong preference for certain letter combinations in English syntax, reflecting their common usage in forming words.
 
+Chi-Square Test Results:
+Test Statistic: 219140.9
+Degrees of Freedom: 625
+P-Value: 0
+This statistical test assesses whether the observed frequencies of letter pairs deviate from expected frequencies if each letter pair occurred independently. The high value of the chi-square statistic and the extremely low p-value (0) suggest that the letter pairs do not occur independently.
 
-
-
-
-
-
+Interpretation and Consequences:
+Rejection of the Null Hypothesis: We reject the null hypothesis that consecutive letters are independent. This rejection implies that certain letter pairs occur together more or less frequently than would be expected by chance alone.
+Implications for Text Analysis: This finding is crucial for computational linguistics and natural language processing as it highlights predictable patterns in text data. Such patterns can enhance algorithms related to text prediction, spelling correction, and other applications where understanding the structure and frequency of letter pairs can provide a computational advantage.
+Application in Movie Descriptions: In the context of movie descriptions, the frequent appearance of specific letter pairs could aid in content analysis, sentiment analysis, and feature extraction tasks, helping to automate and refine the processing of large volumes of text data.
+Conclusions:
+The analysis underscores the structured and predictable nature of letter pairings in English, driven by linguistic rules and common word usage. This insight not only serves theoretical linguistics but also has practical applications in enhancing algorithms for text processing and analysis, particularly in fields leveraging automated text comprehension and generation.
 ## Q2. Birthday Paradox
 
+### (a) (7 pt)
+
+Load the `data_birthday.csv` file, which includes birthdays for some people listed in the IMDB dataset. Display the first few rows. Next, find and display the year with the highest number of birth (including the number in this year), and similarly the month with the highest number of birth, and the day of month with the highest number of births.
+
+#### code
+
+```{r Q2 a, warning = FALSE, fig.width=12, fig.height=8}
+# Load the data
+data_birthday <- read.csv("data/additional_files/data_birthday.csv", stringsAsFactors = FALSE)
+
+# Extract the year (4-digit number)
+data_birthday <- data_birthday %>%
+  mutate(year = str_extract(birthday, "\\b\\d{4}\\b"))
+
+# Extract the month (look for text representing months)
+data_birthday <- data_birthday %>%
+  mutate(month_text = str_extract(birthday, "\\b(January|February|March|April|May|June|July|August|September|October|November|December)\\b"))
+
+# Create a mapping of months to numeric format
+month_mapping <- c(
+  "January" = "01", "February" = "02", "March" = "03",
+  "April" = "04", "May" = "05", "June" = "06",
+  "July" = "07", "August" = "08", "September" = "09",
+  "October" = "10", "November" = "11", "December" = "12"
+)
+
+# Replace the month_text with its numeric equivalent
+data_birthday <- data_birthday %>%
+  mutate(month = month_mapping[month_text])
+
+# Extract the day (1-2 digit number that is NOT part of the year)
+data_birthday <- data_birthday %>%
+  mutate(day = str_extract(birthday, "(?<!\\d)\\b\\d{1,2}\\b(?!\\d{3})"))
+
+# Display the first few rows
+head(data_birthday)
+
+# Find the year with the highest number of births
+year_with_most_births <- data_birthday %>%
+  filter(!is.na(year)) %>%
+  count(year) %>%
+  arrange(desc(n)) %>%
+  slice(1)
+
+# Find the month with the highest number of births
+month_with_most_births <- data_birthday %>%
+  filter(!is.na(month)) %>%
+  count(month) %>%
+  arrange(desc(n)) %>%
+  slice(1)
+
+# Find the day of the month with the highest number of births
+day_with_most_births <- data_birthday %>%
+  filter(!is.na(day)) %>%
+  count(day) %>%
+  arrange(desc(n)) %>%
+  slice(1)
+
+# Display results
+cat("Year with the highest number of births:", year_with_most_births$year, "with", year_with_most_births$n, "births\nMonth with the highest number of births:", month_with_most_births$month, "with", month_with_most_births$n, "births\nDay with the highest number of births:", day_with_most_births$day, "with", day_with_most_births$n, "births\n")
+```
+
+#### Explanation
+Yearly Analysis:
+The year with the highest number of births is 1979, with a total of 9 births recorded. This finding could reflect a higher propensity for data availability from that year, or it could suggest a particular cohort of individuals in the dataset who are of a certain age, possibly related to the film industry trends or significant industry events impacting birth rates.
+Monthly Analysis:
+May (05) has the highest number of births, with 31 births. This could be coincidental, or it might reflect seasonal birth trends typically seen in demographic studies where certain times of the year show higher birth rates due to various socio-economic factors.
+Daily Analysis:
+The 26th day of the month shows the highest number of births (15 births). This could again be a coincidence or may point to a reporting bias or a tendency in the recording of data.
 
 
-(a) (7 pt) Load the `data_birthday.csv` file, which includes birthdays for some people listed in the IMDB dataset. Display the first few rows. Next, find and display the year with the highest number of birth (including the number in this year), and similarly the month with the highest number of birth, and the day of month with the highest number of births.
+### (b) (12 pt)
 
+Here we’ll investigate the [birthday paradox](https://en.wikipedia.org/wiki/Birthday_problem), which suggests that in a random group, the probability of finding at least two people with the same birthday is higher than we might intuitively expect.
 
+-   First, derive a combinatorial formula for the probability $b_n$ of two individual sharing a birthday among a group of $n$ individuals where each birthday $D_i$ is sampled from the uniform probability distribution $D_i \sim U[1,..,365]$ independently.
 
-(b) (12 pt) Here we’ll investigate the [birthday paradox](https://en.wikipedia.org/wiki/Birthday_problem), which suggests that in a random group, the probability of finding at least two people with the same birthday is higher than we might intuitively expect. 
+-   Next use the data from `data_birthday.csv` to compute the empirical probability distribution of birthdays along the year, i.e. the probability $p_j$ of a birthday occurring in any day $j$ of the $365$ days of a year.
 
+Show this probability distribution in a bar plot.
 
+-   Next, for each group size $n$ from 2 to 100, sample 10,000 times $n$ birthdays from this distribution and compute the proportion of samples where at least one pair of individuals shares the same birthday. Then, plot a graph comparing the theoretical probability distribution according to the uniform distribution with the empirical proportion in the simulation results, both shown as a function of $n$.
 
-- First, derive a combinatorial formula for the probability $b_n$ of two individual sharing a birthday among a group of $n$ individuals where each birthday $D_i$ is sampled from the uniform probability distribution $D_i \sim U[1,..,365]$ independently. 
+Do the theoretical curve match the simulated one? why? explain.
 
+**Remark:** You should be able to complete all the simulations in under 5 minutes. If you're unable to do so, you can run 1000 simulations instead, but this will only earn you partial credit (this also applies for other sub-questions requiring 10,000 simulations).
 
+#### Code
 
-- Next use the data from `data_birthday.csv` to compute the empirical probability distribution of birthdays along the year, i.e. the probability $p_j$ of a birthday occurring in any day $j$ of the $365$ days of a year. 
+The probability of **no two people sharing a birthday** is: $$
+P(\text{no shared birthday}) = \frac{365}{365} \cdot \frac{364}{365} \cdot \frac{363}{365} \cdot \cdots \cdot \frac{365 - (n-1)}{365}
+$$ This is because the first person can have any birthday (365 choices), the second person has 364 choices to avoid a match, and so on.
 
-Show this probability distribution in a bar plot. 
+The probability of **at least one shared birthday** is the complement: $$
+b_n = 1 - P(\text{no shared birthday})
+$$ This is the theoretical probability $b_n$.
 
+```{r Q2 b, warning = FALSE, fig.width=12, fig.height=8}
+# Assuming data_birthday already has the 'month' and 'day' columns calculated
 
+# Combine year, month, and day into a valid date format
+data_birthday <- data_birthday %>%
+  mutate(date = as.Date(paste("2020", month, day, sep = "-"), format = "%Y-%m-%d"))
 
-- Next, for each group size $n$ from 2 to 100, sample 10,000 times $n$ birthdays from this distribution and compute the proportion of samples where at least one pair of individuals shares the same birthday. Then, plot a graph comparing the theoretical probability distribution according to the uniform distribution with the empirical proportion in the simulation results, both shown as a function of $n$. 
+# Extract the day of the year (1 to 365) based on the 'date' column
+data_birthday <- data_birthday %>%
+  mutate(day_of_year = yday(date))
 
-Do the theoretical curve match the simulated one? why? explain. <br>
+# Count the occurrences of birthdays for each day of the year
+birthday_counts <- data_birthday %>%
+  filter(!is.na(day_of_year)) %>%
+  count(day_of_year)
 
-**Remark:**  You should be able to complete all the simulations in under 5 minutes. If you're unable to do so, you can run 1000 simulations instead, but this will only earn you partial credit (this also applies for other sub-questions requiring 10,000 simulations).
+# Calculate total number of birthdays
+total_birthdays <- sum(birthday_counts$n)
 
+# Create a full sequence of days from 1 to 365
+all_days <- data.frame(day_of_year = 1:365)
 
+# Left join to ensure all days from 1 to 365 are included, with missing days set to 0
+birthday_counts <- all_days %>%
+  left_join(birthday_counts, by = "day_of_year") %>%
+  mutate(
+    n = replace_na(n, 0),
+    probability = n / total_birthdays
+  )
 
-(c) (14 pt) Define $S_{n,k}$ to be the random variable counting the number of groups of size $k$ out of $n$ individuals that all share the same birthday. For example, $S_{n,k}$ is the number of pairs with the same birthday, and in the previous sub-question we computed and estimated $P(S_{n,2}>0)$ as a function of $n$.
+# Create a month label for the x-axis (approximate starting day for each month)
+day_labels <- data.frame(
+  day_of_year = c(1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335),
+  month = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+)
 
+# Plot the empirical probability distribution of birthdays along the year with month labels
+ggplot(birthday_counts, aes(x = day_of_year, y = probability)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  xlab("Month") +
+  ylab("Empirical Probability of Birthdays") +
+  ggtitle("Empirical Probability Distribution of Birthdays (by Month)") +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12)
+  ) +
+  scale_x_continuous(breaks = day_labels$day_of_year, labels = day_labels$month) +
+  theme_minimal()
 
+# Simulation to calculate the empirical and theoretical probability of shared birthdays
+set.seed(42) # Set seed for reproducibility
+
+# Function to calculate theoretical probability of shared birthday
+theoretical_birthday_prob <- function(n) {
+  prob_no_shared <- 1
+  for (i in 0:(n - 1)) {
+    prob_no_shared <- prob_no_shared * (365 - i) / 365
+  }
+  return(1 - prob_no_shared)
+}
+
+# Function to check if there is a shared birthday in a sample
+has_shared_birthday <- function(birthdays) {
+  return(length(unique(birthdays)) < length(birthdays))
+}
+
+# Initialize results dataframe
+n_simulations <- 10000
+n_range <- 2:100
+results <- data.frame(n = n_range, empirical_prob = NA, theoretical_prob = NA)
+
+# Run simulation for each group size n from 2 to 100
+for (n in n_range) {
+  shared_birthday_count <- 0
+
+  for (i in 1:n_simulations) {
+    # Sample n birthdays from the empirical probability distribution
+    sampled_birthdays <- sample(birthday_counts$day_of_year, n, replace = TRUE, prob = birthday_counts$probability)
+
+    # Check if there is a shared birthday
+    if (has_shared_birthday(sampled_birthdays)) {
+      shared_birthday_count <- shared_birthday_count + 1
+    }
+  }
+
+  # Calculate empirical probability of shared birthday
+  empirical_prob <- shared_birthday_count / n_simulations
+  # Calculate theoretical probability of shared birthday
+  theoretical_prob <- theoretical_birthday_prob(n)
+
+  # Store results
+  results$empirical_prob[results$n == n] <- empirical_prob
+  results$theoretical_prob[results$n == n] <- theoretical_prob
+}
+
+# Plotting the results
+library(ggplot2)
+
+ggplot(results, aes(x = n)) +
+  geom_ribbon(aes(ymin = 0, ymax = empirical_prob, fill = "Empirical", color = "Empirical"), alpha = 0.2) + # Shaded area for empirical curve
+  geom_ribbon(aes(ymin = 0, ymax = theoretical_prob, fill = "Theoretical", color = "Theoretical"), alpha = 0.2) + # Shaded area for theoretical curve
+  geom_line(aes(y = empirical_prob, color = "Empirical"), size = 1) + # Line for empirical curve
+  geom_line(aes(y = theoretical_prob, color = "Theoretical"), size = 1) + # Line for theoretical curve
+  xlab("Group Size (n)") +
+  ylab("Probability of Shared Birthday") +
+  ggtitle("Theoretical vs Empirical Probability of Shared Birthday") +
+  scale_fill_manual(values = c("Empirical" = "blue", "Theoretical" = "red")) + # Unified fill color
+  scale_color_manual(values = c("Empirical" = "blue", "Theoretical" = "red")) + # Unified line color
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12)
+  ) +
+  guides(color = guide_legend(title = "Legend"), fill = guide_legend(title = "Legend"))
+```
+
+#### Explanation
+Empirical Probability Distribution of Birthdays (by Month)
+The first graph depicts the empirical probability distribution of birthdays by month:
+
+Variability: There's noticeable variability in the frequency of birthdays across different months. Some months show significantly higher frequencies, while others are lower. This non-uniform distribution implies that some months are more likely to have birthdays than others, which is a deviation from the uniform distribution assumption typically used in the theoretical model of the Birthday Paradox.
+Peaks and Troughs: Specific months, like May and September, show pronounced peaks, suggesting cultural, environmental, or social factors influencing birth rates in these months. Conversely, months like February have notably lower frequencies, which could be influenced by its fewer days and possibly seasonal birth trends.
+Theoretical vs. Empirical Probability of Shared Birthday
+The second graph compares the theoretical and empirical probabilities of at least two individuals in a group sharing the same birthday:
+
+Theoretical Curve (Red): Based on the combinatorial formula under the assumption that birthdays are uniformly distributed across the year. It shows that with increasing group size, the probability quickly approaches 1 (100%). For example, with 23 people, the probability is over 50%, and with 50 people, it's nearly 100%.
+Empirical Curve (Blue): Derived from simulations using the actual, non-uniform distribution observed in the dataset. The curve rises more steeply than the theoretical curve, reaching high probabilities with fewer individuals in the group.
+Analysis of Results
+Comparison and Conclusions: The empirical curve rises more steeply than the theoretical curve. This difference can be attributed to the actual distribution of birthdays not being uniform. Days or months with higher frequencies of birthdays increase the chances of shared birthdays, even in smaller groups. This makes the actual probability of encountering a shared birthday in real-world scenarios (where birth distributions are not uniform) higher than what might be expected under the theoretical model using a uniform assumption.
+Implications: The non-uniformity in the actual birth distribution emphasizes the need for using empirical data when considering practical applications of probability theories like the Birthday Paradox. For planners, marketers, and researchers, understanding these patterns can aid in more accurately predicting outcomes and making decisions.
+Conclusion
+The analysis clearly shows that the empirical data, due to its deviation from uniformity, yields a higher probability of shared birthdays than the theoretical model predicts for smaller groups. This reinforces the importance of considering real-world data distributions in statistical modeling and challenges the assumptions that underpin many theoretical probability models.
+
+### (c) (14 pt) 
+Define $S_{n,k}$ to be the random variable counting the number of groups of size $k$ out of $n$ individuals that all share the same birthday. For example, $S_{n,k}$ is the number of pairs with the same birthday, and in the previous sub-question we computed and estimated $P(S_{n,2}>0)$ as a function of $n$.
 
 - Run 10,000 simulations, sampling each time $n=100$ individuals from the distribution $p_j$ computed in 2.b., and in each simulation record the total number of pairs sharing a birthday. 
 
 Display for $n=100, k=2$ the empirical distribution of $S_{100,2}$. <br>
 
-**Bonus - 2pt:** Repeat the simulation above but this time recording and displaying the empirical distribution of $S_{100,3}$, i.e. number of triplets sharing a birthday. Describe the results. 
+#### code
+
+```{r Q2 c PartA, warning = FALSE, fig.width=12, fig.height=8}
+set.seed(42) # Set seed for reproducibility
+
+# Function to count the number of pairs sharing the same birthday
+count_pairs <- function(birthdays) {
+  freq_table <- table(birthdays)
+  pairs_count <- sum(freq_table * (freq_table - 1) / 2)
+  return(pairs_count)
+}
+
+# Number of simulations and group size
+n_simulations <- 10000
+n <- 100
+
+# Initialize a vector to store the number of pairs for each simulation
+pair_counts <- numeric(n_simulations)
+
+# Run simulations
+for (i in 1:n_simulations) {
+  # Sample n birthdays from the empirical probability distribution
+  sampled_birthdays <- sample(birthday_counts$day_of_year, n, replace = TRUE, prob = birthday_counts$probability)
+
+  # Count the number of pairs sharing the same birthday
+  pair_counts[i] <- count_pairs(sampled_birthdays)
+}
+
+# Calculate the density of the pair counts
+pair_density <- density(pair_counts)
+
+library(ggplot2)
+
+# Calculate the maximum point for the density
+max_pair_x <- pair_density$x[which.max(pair_density$y)]
+max_pair_y <- max(pair_density$y)
+
+# Plot the distribution of S_100,2 with dashed lines and labels for maximum values
+ggplot(data.frame(x = pair_density$x, y = pair_density$y), aes(x = x, y = y)) +
+  geom_area(fill = "blue", alpha = 0.5) + # Transparent fill under the curve
+  geom_line(color = "blue", linewidth = 1.2) + # Line for the wave's outline
+
+  # Vertical dashed line at the max value (red color)
+  ggplot2::annotate("segment",
+    x = max_pair_x, xend = max_pair_x, y = 0, yend = max_pair_y,
+    linetype = "dashed", color = "red", size = 0.5
+  ) +
+
+  # Horizontal dashed line at the max value (red color)
+  ggplot2::annotate("segment",
+    x = 0, xend = max_pair_x, y = max_pair_y, yend = max_pair_y,
+    linetype = "dashed", color = "red", size = 0.5
+  ) +
+
+  # Properly aligned label for max x (positioned slightly below the x-axis)
+  ggplot2::annotate("text",
+    x = max_pair_x, y = -0.005, label = round(max_pair_x, 2),
+    color = "red", size = 3, hjust = 0.5
+  ) +
+
+  # Properly aligned label for max y (positioned at the start of the horizontal line, near the y-axis)
+  ggplot2::annotate("text",
+    x = 0, y = max_pair_y, label = round(max_pair_y, 3),
+    color = "red", size = 3, hjust = -0.2, vjust = -0.5
+  ) +
+
+  # Axis labels and title
+  ggtitle(expression("Empirical Distribution of " ~ S[100, 2])) +
+  xlab(expression(S[100, 2])) +
+  ylab("Density") +
+
+  # Theme settings to make the plot cleaner and reduce unnecessary space
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    plot.margin = margin(10, 10, 10, 10) # Reduce the margin
+  )
+
+# Display the maximum values for x and y before the plot
+cat("Max value for S_100,2: Pairs = ", round(max_pair_x, 2), ", Density = ", round(max_pair_y, 2), "\n")
+```
+
+#### Explanation
+Distribution Shape: The plot shows a bell-shaped curve, suggesting that S is approximately normally distributed. This type of distribution is common for variables that are the sum or average of many independent random variables, according to the Central Limit Theorem.
+Density and Values: The plot indicates a maximum density point around S=26.7
+S=26.7 with a peak density of 0.07. The density function is highest at this point, meaning that S=26.7 is the most probable or frequent value within the dataset.
+#### Bonus - 2pt:
+
+Repeat the simulation above but this time recording and displaying the empirical distribution of $S_{100,3}$, i.e. number of triplets sharing a birthday. Describe the results.
+
+##### Code
+
+```{r Bonus PartA, warning = FALSE, fig.width=12, fig.height=8}
+set.seed(42) # Set seed for reproducibility
+
+# Function to count the number of triplets sharing the same birthday
+count_triplets <- function(birthdays) {
+  freq_table <- table(birthdays)
+
+  # Triplets from a group of size m is given by m * (m - 1) * (m - 2) / 6
+  triplet_count <- sum(freq_table * (freq_table - 1) * (freq_table - 2) / 6)
+  return(triplet_count)
+}
+
+# Number of simulations and group size
+n_simulations <- 10000
+n <- 100
+
+# Initialize a vector to store the number of triplets for each simulation
+triplet_counts <- numeric(n_simulations)
+
+# Run simulations
+for (i in 1:n_simulations) {
+  # Sample n birthdays from the empirical probability distribution
+  sampled_birthdays <- sample(birthday_counts$day_of_year, n, replace = TRUE, prob = birthday_counts$probability)
+
+  # Count the number of triplets sharing the same birthday
+  triplet_counts[i] <- count_triplets(sampled_birthdays)
+}
+
+# Calculate the density of the triplet counts
+triplet_density <- density(triplet_counts)
+
+# Calculate maximum points for the plot
+max_triplet_x <- triplet_density$x[which.max(triplet_density$y)]
+max_triplet_y <- max(triplet_density$y)
+
+# Plot the distribution of S_100,3 with dashed lines and labels for maximum values
+ggplot(data.frame(x = triplet_density$x, y = triplet_density$y), aes(x = x, y = y)) +
+  geom_area(fill = "blue", alpha = 0.5) + # Transparent fill under the curve
+  geom_line(color = "blue", linewidth = 1.2) + # Line for the wave's outline
+
+  # Vertical dashed line at the max value (red color)
+  ggplot2::annotate("segment",
+    x = max_triplet_x, xend = max_triplet_x, y = 0, yend = max_triplet_y,
+    linetype = "dashed", color = "red", size = 0.5
+  ) +
+
+  # Horizontal dashed line at the max value (red color)
+  ggplot2::annotate("segment",
+    x = 0, xend = max_triplet_x, y = max_triplet_y, yend = max_triplet_y,
+    linetype = "dashed", color = "red", size = 0.5
+  ) +
+
+  # Properly aligned label for max x
+  ggplot2::annotate("text",
+    x = max_triplet_x, y = -0.005, label = round(max_triplet_x, 2),
+    color = "red", size = 3, hjust = 0.5
+  ) +
+
+  # Properly aligned label for max y (positioned at the start of the horizontal line, near the y-axis)
+  ggplot2::annotate("text",
+    x = 0, y = max_triplet_y, label = round(max_triplet_y, 3),
+    color = "red", size = 3, hjust = -0.2, vjust = -0.5
+  ) +
+
+  # Axis labels and title
+  ggtitle(expression("Empirical Distribution of " ~ S[100, 3])) +
+  xlab(expression(S[100, 3])) +
+  ylab("Density") +
+
+  # Theme settings to make the plot cleaner and reduce unnecessary space
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    plot.margin = margin(10, 10, 10, 10) # Reduce the margin
+  )
+```
+##### Explanation
 
 
+Step 2: Deriving the formula for $E_{n,k}$
 
-- Let $E_{n,k} = E[S_{n,k}]$ be the *expected* number of groups of size $k$ sharing a birthday. 
+-   Derive a combinatorial formula for $E_{n,k}$ as a function of $n,k$ and the probabilities $p_j$ (**hint:** use linearity of expectation).
 
-Suppose that each birthday $D_i$ has a categorical distribution, with $P(D_i=j) = p_j$ such that $p_j$ is the probability of being born at day $j$, and $\sum_{j=1}^{365} p_j=1$.
+Let $E_{n,k}$ represent the expected number of groups of size $k$ sharing the same birthday among $n$ individuals. Each birthday $D_i$ follows a categorical distribution with:
 
-- Derive a combinatorial formula for $E_{n,k}$ as a function of $n,k$ and the probabilities $p_j$ (**hint:** use linearity of expectation).
+$$
+P(D_i = j) = p_j, \quad \text{where} \quad \sum_{j=1}^{365} p_j = 1
+$$
 
+The probability $p_j$ represents the probability of being born on day $j$, and $n_j$ is the number of people born on day $j$.
 
+Using the **linearity of expectation**, we can compute the expected number of groups of size $k$ sharing the same birthday by summing over all possible days of the year (from 1 to 365).
 
-- Compute an estimate for the expectation of the number of pairs having the same birthday ($k=2$) using 10,000 simulations, for $p_j$'s given by the empirical distribution you have computed for the `data_birthday.csv` data, for $n$ running from $2$ to $100$. 
+For any particular day $j$, the number of groups of size $k$ is given by the binomial coefficient $\binom{n_j}{k}$, where $n_j$ is the number of individuals born on day $j$. The total expected number of such groups over all days is:
 
-Plot: (i) the theoretical expectation with the same $p_j$'s, (ii) the theoretical expectation with the uniform distribution over $365$ values, and (iii)  the empirical expectation form the simulation, all on the same graph as a function of $n$. Do the curves match? Explain. 
+$$
+E_{n,k} = \sum_{j=1}^{365} \binom{n_j}{k} p_j
+$$
+
+For the case $k = 2$ (i.e., pairs sharing the same birthday), this reduces to:
+
+$$
+E_{n,2} = \sum_{j=1}^{365} \binom{n_j}{2} p_j = \sum_{j=1}^{365} \frac{n_j (n_j - 1)}{2} p_j
+$$
+
+This formula provides the expected number of pairs of individuals sharing the same birthday in a group of $n$ people, taking into account the distribution of $p_j$, the probability of being born on any given day.
+
+Step 3: Computing the Expected Number of Pairs
+-   Compute an estimate for the expectation of the number of pairs having the same birthday ($k=2$) using 10,000 simulations, for $p_j$'s given by the empirical distribution you have computed for the `data_birthday.csv` data, for $n$ running from $2$ to $100$.
+
+Plot: (i) the theoretical expectation with the same $p_j$'s, (ii) the theoretical expectation with the uniform distribution over $365$ values, and (iii) the empirical expectation form the simulation, all on the same graph as a function of $n$. Do the curves match? Explain.
 
 What is the smallest $n$ (number of individuals) such that the expectation $E_{n,2}$ is greater than $1$ for each of the three methods? <br>
 
-**Bonus - 2pt:** Repeat the above for $k=3$, i.e. the number of triplets sharing a birthday. What is the smallest $n$ (number of individuals) such that the expectation $E_{n,3}$ is greater than $1$?
+##### Code
+```{r Bonus c PartB, warning = FALSE, fig.width=12, fig.height=8}
+set.seed(42)
 
+# Number of simulations reduced to 1000 to make the code faster
+n_simulations <- 10000
 
+# Function to calculate E_n2 using empirical p_j
+estimate_E_n2 <- function(n) {
+  pair_counts <- numeric(n_simulations)
+  for (i in 1:n_simulations) {
+    sampled_birthdays <- sample(birthday_counts$day_of_year, n, replace = TRUE, prob = birthday_counts$probability)
+    pair_counts[i] <- count_pairs(sampled_birthdays)
+  }
+  return(mean(pair_counts)) # Return the mean number of pairs for n
+}
 
+# Run the simulation for n from 2 to 100
+n_range <- 2:100
+empirical_E_n2 <- sapply(n_range, estimate_E_n2)
 
+# Calculate the theoretical expectation for uniform distribution
+uniform_E_n2 <- sapply(n_range, function(n) {
+  365 * (choose(n, 2) / 365^2)
+})
 
+# Theoretical expectation using empirical p_j's
+theoretical_E_n2_empirical <- sapply(n_range, function(n) {
+  sum(birthday_counts$probability^2) * choose(n, 2)
+})
 
+# Plotting the results
+df <- data.frame(
+  n = n_range, empirical = empirical_E_n2,
+  uniform = uniform_E_n2, empirical_theoretical = theoretical_E_n2_empirical
+)
 
+ggplot(df, aes(x = n)) +
+  geom_line(aes(y = empirical, color = "Empirical Simulation")) +
+  geom_line(aes(y = uniform, color = "Theoretical (Uniform)")) +
+  geom_line(aes(y = empirical_theoretical, color = "Theoretical (Empirical p_j)")) +
+  xlab("Number of Individuals (n)") +
+  ylab(expression(E[S[n, 2]])) +
+  ggtitle("Expected Number of Pairs Sharing a Birthday") +
+  scale_color_manual(values = c(
+    "Empirical Simulation" = "blue",
+    "Theoretical (Uniform)" = "red",
+    "Theoretical (Empirical p_j)" = "green"
+  )) +
+  theme_minimal()
+```
+#### Explanation
 
+#### Bonus - 2pt:** 
+Repeat the above for $k=3$, i.e. the number of triplets sharing a birthday. What is the smallest $n$ (number of individuals) such that the expectationmmk $E_{n,3}$ is greater than $1$?
 
+##### Code
 
+```{r Bonus2, warning = FALSE, fig.width=12, fig.height=8}
+set.seed(42)
 
-**Solutions:**
+# Number of simulations
+n_simulations <- 10000
 
-<Add here your text and code blocks:> 
+# Function to count the number of triplets sharing the same birthday
+count_triplets <- function(birthdays) {
+  freq_table <- table(birthdays)
+  triplet_count <- sum(freq_table * (freq_table - 1) * (freq_table - 2) / 6)
+  return(triplet_count)
+}
 
-text
+# Function to calculate E_n3 using empirical p_j
+estimate_E_n3 <- function(n) {
+  triplet_counts <- numeric(n_simulations)
+  for (i in 1:n_simulations) {
+    sampled_birthdays <- sample(birthday_counts$day_of_year, n, replace = TRUE, prob = birthday_counts$probability)
+    triplet_counts[i] <- count_triplets(sampled_birthdays)
+  }
+  return(mean(triplet_counts)) # Return the mean number of triplets for n
+}
 
-```{r}
-# code
+# Run the simulation for n from 2 to 100
+n_range <- 2:100
+empirical_E_n3 <- sapply(n_range, estimate_E_n3)
+
+# Calculate the theoretical expectation for uniform distribution
+uniform_E_n3 <- sapply(n_range, function(n) {
+  365 * (choose(n, 3) / 365^3)
+})
+
+# Theoretical expectation using empirical p_j's
+theoretical_E_n3_empirical <- sapply(n_range, function(n) {
+  sum(birthday_counts$probability^3) * choose(n, 3)
+})
+
+# Plotting the results
+df <- data.frame(
+  n = n_range, empirical = empirical_E_n3,
+  uniform = uniform_E_n3, empirical_theoretical = theoretical_E_n3_empirical
+)
+
+ggplot(df, aes(x = n)) +
+  geom_line(aes(y = empirical, color = "Empirical Simulation")) +
+  geom_line(aes(y = uniform, color = "Theoretical (Uniform)")) +
+  geom_line(aes(y = empirical_theoretical, color = "Theoretical (Empirical p_j)")) +
+  xlab("Number of Individuals (n)") +
+  ylab(expression(E[S[n, 3]])) +
+  ggtitle("Expected Number of Triplets Sharing a Birthday") +
+  scale_color_manual(values = c(
+    "Empirical Simulation" = "blue",
+    "Theoretical (Uniform)" = "red",
+    "Theoretical (Empirical p_j)" = "green"
+  )) +
+  theme_minimal()
+
+# Find the smallest n such that E[n,3] > 1
+smallest_n_empirical_3 <- min(n_range[empirical_E_n3 > 1])
+smallest_n_uniform_3 <- min(n_range[uniform_E_n3 > 1])
+smallest_n_empirical_theoretical_3 <- min(n_range[theoretical_E_n3_empirical > 1])
+
+cat("Smallest n such that E[n,3] > 1 (Empirical Simulation):", smallest_n_empirical_3, "\n")
+cat("Smallest n such that E[n,3] > 1 (Theoretical - Uniform):", smallest_n_uniform_3, "\n")
+cat("Smallest n such that E[n,3] > 1 (Theoretical - Empirical p_j):", smallest_n_empirical_theoretical_3, "\n")
 ```
 
-
-
-text
-
-
-
-```{r}
-# code
-```
-
-
-
-text
-
-```{r}
-# code
-```
-
-text
-
-...
-
-
-
+##### Explanation
