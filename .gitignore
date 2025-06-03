@@ -1,20 +1,18 @@
-Lab1/owid-covid-data.csv
-Lab2/data/
-Lab1/owid-covid-data.csv
-Lab2/data/
-Lab2/Lab2.Rproj
-Lab1/owid-covid-data.csv
-Lab2/data/
-Lab2/Lab2.Rproj
-.DS_Store
-Lab2/.DS_Store
-Lab1/.DS_Store
-Lab1/.Rhistory
-.DS_Store
+# Ignore everything in Final/data except additional_files and its contents
+Final/data/*
+!Final/data/additional_files/
+!Final/data/additional_files/*.csv
+
+# Ignore everything else not in the final structure
+# Remove .DS_Store and RStudio junk
+.Rproj.user/
 .Rhistory
-.Rproj.user
-Final/data/
-Final/*
-Final/data/
-Final/*
-!Final/*.Rmd
+.RData
+.Ruserdata
+.DS_Store
+
+# Explicitly allow key Rmd files
+!Final/Final.Rmd
+!Lab1/Lab1.Rmd
+!Lab2/Lab2.Rmd
+!README.md
